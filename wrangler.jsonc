@@ -1,0 +1,6 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "draftmaps-worker",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-06-09"
+}
