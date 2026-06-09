@@ -1,6 +1,7 @@
 import { isValidCoordinate } from "../types/city";
 import type { Location } from "../types/location";
 import { fallbackLocations } from "./fallbackLocations";
+import { findLocationById } from "./locationLookup";
 import { selectLocationsForMap } from "./locationSelection";
 import { fetchGoianiaOverpassElements } from "./overpassClient";
 import { normalizeOverpassElementToLocation } from "./overpassParser";
@@ -18,6 +19,26 @@ const jsonHeaders = {
   "content-type": "application/json; charset=utf-8",
 };
 
+function getLocationIdFromPath(pathname: string): string | null {
+  const detailRoutePrefix = "/api/locations/";
+
+  if (!pathname.startsWith(detailRoutePrefix)) {
+    return null;
+  }
+
+  const pathSegments = pathname.slice(detailRoutePrefix.length).split("/");
+
+  if (pathSegments.length !== 1 || pathSegments[0].length === 0) {
+    return null;
+  }
+
+  try {
+    return decodeURIComponent(pathSegments[0]);
+  } catch {
+    return null;
+  }
+}
+
 function isValidLocation(location: Location): boolean {
   return (
     location.name.trim().length > 0 &&
@@ -30,7 +51,10 @@ function getValidFallbackLocations(): Location[] {
   return fallbackLocations.filter(isValidLocation);
 }
 
-export function jsonResponse(body: LocationsResponse | { error: string }, status = 200): Response {
+export function jsonResponse(
+  body: LocationsResponse | Location | { error: string },
+  status = 200,
+): Response {
   return new Response(JSON.stringify(body), {
     headers: jsonHeaders,
     status,
@@ -79,15 +103,32 @@ export async function handleRequest(request: Request): Promise<Response> {
     return notFoundResponse();
   }
 
-  if (url.pathname !== "/api/locations") {
-    return notFoundResponse();
+  if (url.pathname === "/api/locations") {
+    if (request.method !== "GET") {
+      return methodNotAllowedResponse();
+    }
+
+    return jsonResponse(await getLocationsResponse());
   }
 
-  if (request.method !== "GET") {
-    return methodNotAllowedResponse();
+  const locationId = getLocationIdFromPath(url.pathname);
+
+  if (locationId !== null) {
+    if (request.method !== "GET") {
+      return methodNotAllowedResponse();
+    }
+
+    const locationsResponse = await getLocationsResponse();
+    const location = findLocationById(locationsResponse.locations, locationId);
+
+    if (!location) {
+      return notFoundResponse();
+    }
+
+    return jsonResponse(location);
   }
 
-  return jsonResponse(await getLocationsResponse());
+  return notFoundResponse();
 }
 
 const worker = {
