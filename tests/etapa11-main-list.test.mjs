@@ -20,6 +20,8 @@ const sourceFiles = [
     path.join(projectRoot, "components/ErrorState.tsx"),
     path.join(projectRoot, "components/LoadingState.tsx"),
     path.join(projectRoot, "components/LocationCard.tsx"),
+    path.join(projectRoot, "components/MapRenderer.tsx"),
+    path.join(projectRoot, "components/MapRenderer.web.tsx"),
     path.join(projectRoot, "components/SelectedLocationCard.tsx"),
     path.join(projectRoot, "components/Screen.tsx"),
     path.join(projectRoot, "hooks/useLocations.ts"),
@@ -108,6 +110,7 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
                 "}",
                 "",
                 "module.exports = {",
+                "  Platform: { OS: 'web', select(options) { return options.web ?? options.default; } },",
                 "  Pressable: createHostComponent('Pressable'),",
                 "  ScrollView: createHostComponent('ScrollView'),",
                 "  Text: createHostComponent('Text'),",
@@ -134,6 +137,46 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
                 "}",
                 "",
                 "module.exports = { SafeAreaView };",
+                "",
+            ].join("\n"),
+            "utf8",
+        );
+        fs.mkdirSync(path.join(linkedNodeModules, "react-leaflet"), {
+            recursive: true,
+        });
+        fs.writeFileSync(
+            path.join(linkedNodeModules, "react-leaflet/index.js"),
+            [
+                "const React = require('react');",
+                "",
+                "function MapContainer(props) {",
+                "  return React.createElement('MapContainer', props, props.children);",
+                "}",
+                "",
+                "function TileLayer(props) {",
+                "  return React.createElement('TileLayer', props, props.children);",
+                "}",
+                "",
+                "function Marker(props) {",
+                "  return React.createElement('Marker', props, props.children);",
+                "}",
+                "",
+                "module.exports = { MapContainer, TileLayer, Marker };",
+                "",
+            ].join("\n"),
+            "utf8",
+        );
+        fs.mkdirSync(path.join(linkedNodeModules, "leaflet"), {
+            recursive: true,
+        });
+        fs.writeFileSync(
+            path.join(linkedNodeModules, "leaflet/index.js"),
+            [
+                "function divIcon(options) {",
+                "  return { ...options, __type: 'divIcon' };",
+                "}",
+                "",
+                "module.exports = { divIcon };",
                 "",
             ].join("\n"),
             "utf8",

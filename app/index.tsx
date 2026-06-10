@@ -6,6 +6,7 @@ import { EmptyState } from "../components/EmptyState";
 import { ErrorState } from "../components/ErrorState";
 import { LoadingState } from "../components/LoadingState";
 import { LocationCard } from "../components/LocationCard";
+import { MapRenderer } from "../components/MapRenderer";
 import { SelectedLocationCard } from "../components/SelectedLocationCard";
 import { Screen } from "../components/Screen";
 import { useLocations } from "../hooks/useLocations";
@@ -41,36 +42,48 @@ export function LocationsScreenContent({
         content = <LoadingState />;
     } else if (error) {
         content = <ErrorState message={error} onRetry={reload} />;
-    } else if (data.length === 0) {
-        content = <EmptyState />;
     } else {
         content = (
             <View className="flex-1 gap-4">
-                <ScrollView
-                    className="flex-1"
-                    contentContainerClassName="gap-3 pb-6"
-                >
-                    {data.map((location) => (
-                        <LocationCard
-                            key={location.id}
-                            location={location}
-                            isSelected={location.id === selectedLocationId}
-                            onPress={() => {
-                                handleSelectLocation(location.id);
+                <MapRenderer
+                    locations={data}
+                    onSelectLocation={handleSelectLocation}
+                    selectedLocationId={selectedLocationId}
+                />
+
+                {data.length === 0 ? (
+                    <EmptyState />
+                ) : (
+                    <>
+                        <ScrollView
+                            className="flex-1"
+                            contentContainerClassName="gap-3 pb-6"
+                        >
+                            {data.map((location) => (
+                                <LocationCard
+                                    key={location.id}
+                                    location={location}
+                                    isSelected={
+                                        location.id === selectedLocationId
+                                    }
+                                    onPress={() => {
+                                        handleSelectLocation(location.id);
+                                    }}
+                                />
+                            ))}
+                        </ScrollView>
+
+                        <SelectedLocationCard
+                            location={selectedLocation}
+                            onViewDetails={(locationId) => {
+                                router.push({
+                                    pathname: "/locations/[id]",
+                                    params: { id: locationId },
+                                });
                             }}
                         />
-                    ))}
-                </ScrollView>
-
-                <SelectedLocationCard
-                    location={selectedLocation}
-                    onViewDetails={(locationId) => {
-                        router.push({
-                            pathname: "/locations/[id]",
-                            params: { id: locationId },
-                        });
-                    }}
-                />
+                    </>
+                )}
             </View>
         );
     }
