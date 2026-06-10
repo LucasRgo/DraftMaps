@@ -10,7 +10,8 @@ function readFile(relativePath) {
 }
 
 test("Etapa 1 scaffold matches the required base contract", () => {
-    const packageJson = JSON.parse(readFile("package.json"));
+    const packageJsonContent = fs.readFileSync(path.join(projectRoot, "package.json"), "utf8");
+    const packageJson = JSON.parse(packageJsonContent);
     const tsconfig = JSON.parse(readFile("tsconfig.json"));
     const layoutSource = readFile("app/_layout.tsx");
     const indexSource = readFile("app/index.tsx");
