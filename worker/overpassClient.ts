@@ -5,31 +5,31 @@ const OVERPASS_API_URL = "https://overpass-api.de/api/interpreter";
 const OVERPASS_TIMEOUT_MS = 8000;
 
 type OverpassApiResponse = {
-  elements?: OverpassElement[];
+    elements?: OverpassElement[];
 };
 
 function createTimeoutSignal(timeoutMs: number): {
-  signal: AbortSignal;
-  cleanup: () => void;
+    signal: AbortSignal;
+    cleanup: () => void;
 } {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    controller.abort();
-  }, timeoutMs);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+        controller.abort();
+    }, timeoutMs);
 
-  return {
-    signal: controller.signal,
-    cleanup() {
-      clearTimeout(timeoutId);
-    },
-  };
+    return {
+        signal: controller.signal,
+        cleanup() {
+            clearTimeout(timeoutId);
+        },
+    };
 }
 
 export function buildGoianiaOverpassQuery(): string {
-  const [south, west, north, east] = GOIANIA.bbox;
-  const bbox = `${south},${west},${north},${east}`;
+    const [south, west, north, east] = GOIANIA.bbox;
+    const bbox = `${south},${west},${north},${east}`;
 
-  return `
+    return `
 [out:json][timeout:8];
 (
   node["amenity"="cafe"](${bbox});
@@ -52,31 +52,37 @@ out center tags;
 `.trim();
 }
 
-export async function fetchGoianiaOverpassElements(): Promise<OverpassElement[]> {
-  const { signal, cleanup } = createTimeoutSignal(OVERPASS_TIMEOUT_MS);
+export async function fetchGoianiaOverpassElements(): Promise<
+    OverpassElement[]
+> {
+    const { signal, cleanup } = createTimeoutSignal(OVERPASS_TIMEOUT_MS);
 
-  try {
-    const response = await fetch(OVERPASS_API_URL, {
-      method: "POST",
-      headers: {
-        "content-type": "text/plain; charset=utf-8",
-      },
-      body: buildGoianiaOverpassQuery(),
-      signal,
-    });
+    try {
+        const response = await fetch(OVERPASS_API_URL, {
+            method: "POST",
+            headers: {
+                "content-type": "text/plain; charset=utf-8",
+            },
+            body: buildGoianiaOverpassQuery(),
+            signal,
+        });
 
-    if (!response.ok) {
-      throw new Error(`Overpass request failed with status ${response.status}`);
+        if (!response.ok) {
+            throw new Error(
+                `Overpass request failed with status ${response.status}`,
+            );
+        }
+
+        const payload = (await response.json()) as OverpassApiResponse;
+
+        if (!Array.isArray(payload.elements)) {
+            throw new Error(
+                "Overpass response did not include an elements array",
+            );
+        }
+
+        return payload.elements;
+    } finally {
+        cleanup();
     }
-
-    const payload = (await response.json()) as OverpassApiResponse;
-
-    if (!Array.isArray(payload.elements)) {
-      throw new Error("Overpass response did not include an elements array");
-    }
-
-    return payload.elements;
-  } finally {
-    cleanup();
-  }
 }

@@ -8,59 +8,63 @@ import { execFileSync } from "node:child_process";
 const projectRoot = process.cwd();
 
 function fileExists(relativePath) {
-  return fs.existsSync(path.join(projectRoot, relativePath));
+    return fs.existsSync(path.join(projectRoot, relativePath));
 }
 
 function readFile(relativePath) {
-  return fs.readFileSync(path.join(projectRoot, relativePath), "utf8");
+    return fs.readFileSync(path.join(projectRoot, relativePath), "utf8");
 }
 
 function runTypecheck(entryFileContents) {
-  const tempDirectory = fs.mkdtempSync(
-    path.join(os.tmpdir(), "draftmaps-etapa3-"),
-  );
-  const entryPath = path.join(tempDirectory, "entry.ts");
-
-  fs.writeFileSync(entryPath, entryFileContents);
-
-  try {
-    execFileSync(
-      "node_modules/.bin/tsc",
-      [
-        "--noEmit",
-        "--strict",
-        "--target",
-        "ES2020",
-        "--allowImportingTsExtensions",
-        "--module",
-        "NodeNext",
-        "--moduleResolution",
-        "NodeNext",
-        "--skipLibCheck",
-        entryPath,
-      ],
-      {
-        cwd: projectRoot,
-        stdio: "pipe",
-      },
+    const tempDirectory = fs.mkdtempSync(
+        path.join(os.tmpdir(), "draftmaps-etapa3-"),
     );
-  } finally {
-    fs.rmSync(tempDirectory, { recursive: true, force: true });
-  }
+    const entryPath = path.join(tempDirectory, "entry.ts");
+
+    fs.writeFileSync(entryPath, entryFileContents);
+
+    try {
+        execFileSync(
+            "node_modules/.bin/tsc",
+            [
+                "--noEmit",
+                "--strict",
+                "--target",
+                "ES2020",
+                "--allowImportingTsExtensions",
+                "--module",
+                "NodeNext",
+                "--moduleResolution",
+                "NodeNext",
+                "--skipLibCheck",
+                entryPath,
+            ],
+            {
+                cwd: projectRoot,
+                stdio: "pipe",
+            },
+        );
+    } finally {
+        fs.rmSync(tempDirectory, { recursive: true, force: true });
+    }
 }
 
 test("Etapa 3 provides the core domain files", () => {
-  for (const relativePath of [
-    "types/location.ts",
-    "types/city.ts",
-    "worker/fallbackLocations.ts",
-  ]) {
-    assert.equal(fileExists(relativePath), true, `${relativePath} should exist`);
-  }
+    for (const relativePath of [
+        "types/location.ts",
+        "types/city.ts",
+        "worker/fallbackLocations.ts",
+    ]) {
+        assert.equal(
+            fileExists(relativePath),
+            true,
+            `${relativePath} should exist`,
+        );
+    }
 });
 
 test("Etapa 3 domain is importable and models Goiania with typed fallback data", () => {
-  runTypecheck(`
+    runTypecheck(`
 import { GOIANIA, isValidCoordinate } from "${path.join(projectRoot, "types/city.ts")}";
 import { fallbackLocations } from "${path.join(projectRoot, "worker/fallbackLocations.ts")}";
 import type { Location, LocationCategory } from "${path.join(projectRoot, "types/location.ts")}";
@@ -103,12 +107,12 @@ if (!isValidCoordinate(firstLocation.longitude, "longitude")) {
 });
 
 test("Etapa 3 source files keep the category union constrained to MVP scope", () => {
-  const locationSource = readFile("types/location.ts");
+    const locationSource = readFile("types/location.ts");
 
-  assert.match(locationSource, /"cafe"/);
-  assert.match(locationSource, /"library"/);
-  assert.match(locationSource, /"museum"/);
-  assert.match(locationSource, /"park"/);
-  assert.match(locationSource, /"bookstore"/);
-  assert.doesNotMatch(locationSource, /"restaurant"/);
+    assert.match(locationSource, /"cafe"/);
+    assert.match(locationSource, /"library"/);
+    assert.match(locationSource, /"museum"/);
+    assert.match(locationSource, /"park"/);
+    assert.match(locationSource, /"bookstore"/);
+    assert.doesNotMatch(locationSource, /"restaurant"/);
 });
