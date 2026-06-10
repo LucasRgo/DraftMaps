@@ -82,7 +82,7 @@ test("LocationsScreenContent renders loading state", () => {
 
     assert.deepEqual(getRenderedText(renderer), [
         "DraftMaps",
-        "Places for you to chill",
+        "Places to chill",
         "Loading places...",
     ]);
 });
@@ -116,7 +116,7 @@ test("LocationsScreenContent renders error state and retries", () => {
     assert.equal(retries, 1);
     assert.deepEqual(getRenderedText(renderer), [
         "DraftMaps",
-        "Places for you to chill",
+        "Places to chill",
         "Something went wrong",
         "Worker unavailable",
         "Try again",
@@ -139,9 +139,33 @@ test("LocationsScreenContent renders empty state", () => {
 
     assert.deepEqual(getRenderedText(renderer), [
         "DraftMaps",
-        "Places for you to chill",
+        "Places to chill",
         "No places found",
         "We could not find places to show right now.",
+    ]);
+});
+
+test("LocationsScreenContent keeps the map focused and hides the list by default", () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+
+    TestRenderer.act(() => {
+        renderer = TestRenderer.create(
+            <LocationsScreenContent
+                data={locations}
+                error={null}
+                isLoading={false}
+                reload={() => {}}
+            />,
+        );
+    });
+
+    assert.deepEqual(getRenderedText(renderer), [
+        "DraftMaps",
+        "Places to chill",
+        "Goiânia",
+        "Show list",
+        "Choose a place",
+        "Tap a pin or open the list to pick somewhere calm.",
     ]);
 });
 
@@ -171,26 +195,37 @@ test("LocationsScreenContent renders the list and updates selected location", ()
 
     const firstCard = renderer.root.findByProps({
         accessibilityRole: "button",
-        accessibilityLabel: "Select Bosque dos Buritis",
+        accessibilityLabel: "Show locations list",
     });
 
     TestRenderer.act(() => {
         firstCard.props.onPress();
     });
 
+    const selectBosqueButton = renderer.root.findByProps({
+        accessibilityRole: "button",
+        accessibilityLabel: "Select Bosque dos Buritis",
+    });
+
+    TestRenderer.act(() => {
+        selectBosqueButton.props.onPress();
+    });
+
     assert.deepEqual(getRenderedText(renderer), [
         "DraftMaps",
-        "Places for you to chill",
+        "Places to chill",
+        "Goiânia",
+        "Hide list",
+        "Selected place",
+        "Bosque dos Buritis",
+        "Park",
+        "View details",
         "Bosque dos Buritis",
         "Park",
         "Selected",
         "Biblioteca Central",
         "Library",
         "Tap to select",
-        "Selected place",
-        "Bosque dos Buritis",
-        "Park",
-        "View details",
     ]);
 });
 
@@ -210,13 +245,11 @@ test("LocationsScreenContent hides the selected card actions when no location is
 
     assert.deepEqual(getRenderedText(renderer), [
         "DraftMaps",
-        "Places for you to chill",
-        "Bosque dos Buritis",
-        "Park",
-        "Tap to select",
-        "Biblioteca Central",
-        "Library",
-        "Tap to select",
+        "Places to chill",
+        "Goiânia",
+        "Show list",
+        "Choose a place",
+        "Tap a pin or open the list to pick somewhere calm.",
     ]);
 });
 
@@ -249,6 +282,15 @@ test("LocationsScreenContent navigates to the selected location details route", 
     try {
         TestRenderer.act(() => {
             renderer = TestRenderer.create(<StatefulScreen />);
+        });
+
+        const listToggleButton = renderer.root.findByProps({
+            accessibilityRole: "button",
+            accessibilityLabel: "Show locations list",
+        });
+
+        TestRenderer.act(() => {
+            listToggleButton.props.onPress();
         });
 
         const firstCard = renderer.root.findByProps({

@@ -38,7 +38,7 @@ export function isValidCoordinate(
 export const GOIANIA: City = {
     slug: "goiania",
     name: "Goiânia",
-    subtitle: "Places for you to chill",
+    subtitle: "Places to chill",
     center: {
         latitude: -16.6869,
         longitude: -49.2648,

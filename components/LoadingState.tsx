@@ -8,8 +8,8 @@ export function LoadingState({
     message = "Loading places...",
 }: LoadingStateProps) {
     return (
-        <View className="flex-1 items-center justify-center px-6 py-10">
-            <Text className="text-center text-base text-slate-200">
+        <View className="flex-1 items-center justify-center rounded-[28px] bg-white px-6 py-10">
+            <Text className="text-center text-base font-medium text-stone-700">
                 {message}
             </Text>
         </View>

@@ -10,15 +10,15 @@ type ScreenProps = {
 
 export function Screen({ children, subtitle, title }: ScreenProps) {
     return (
-        <SafeAreaView className="flex-1 bg-slate-900">
-            <View className="flex-1 px-6 py-4">
+        <SafeAreaView className="flex-1 bg-stone-100">
+            <View className="flex-1 px-5 py-4">
                 {title ? (
-                    <View className="pb-4">
-                        <Text className="text-3xl font-bold text-slate-100">
+                    <View className="mb-4">
+                        <Text className="text-[34px] font-bold tracking-[-1px] text-stone-900">
                             {title}
                         </Text>
                         {subtitle ? (
-                            <Text className="mt-2 text-base text-slate-300">
+                            <Text className="mt-1 text-base text-stone-600">
                                 {subtitle}
                             </Text>
                         ) : null}

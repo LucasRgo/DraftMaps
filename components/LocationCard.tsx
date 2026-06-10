@@ -1,27 +1,13 @@
 import { Pressable, Text, View } from "react-native";
 
-import type { Location, LocationCategory } from "../types/location";
+import type { Location } from "../types/location";
+import { formatLocationCategoryLabel } from "../utils/locationDetails";
 
 type LocationCardProps = {
     isSelected: boolean;
     location: Location;
     onPress: () => void;
 };
-
-function formatCategory(category: LocationCategory): string {
-    switch (category) {
-        case "bookstore":
-            return "Bookstore";
-        case "cafe":
-            return "Cafe";
-        case "library":
-            return "Library";
-        case "museum":
-            return "Museum";
-        case "park":
-            return "Park";
-    }
-}
 
 export function LocationCard({
     isSelected,
@@ -32,23 +18,23 @@ export function LocationCard({
         <Pressable
             accessibilityLabel={`Select ${location.name}`}
             accessibilityRole="button"
-            className={`rounded-3xl border px-4 py-4 ${
+            className={`rounded-[24px] border px-4 py-4 active:opacity-90 ${
                 isSelected
-                    ? "border-emerald-400 bg-emerald-500/15"
-                    : "border-slate-800 bg-slate-950/60"
+                    ? "border-emerald-700 bg-emerald-50"
+                    : "border-stone-200 bg-stone-50"
             }`}
             onPress={onPress}
         >
             <View className="gap-2">
-                <Text className="text-lg font-semibold text-slate-100">
+                <Text className="text-lg font-semibold leading-7 text-stone-900">
                     {location.name}
                 </Text>
-                <Text className="text-sm uppercase tracking-wide text-slate-300">
-                    {formatCategory(location.category)}
+                <Text className="text-sm font-medium text-stone-600">
+                    {formatLocationCategoryLabel(location.category)}
                 </Text>
                 <Text
                     className={`text-sm font-medium ${
-                        isSelected ? "text-emerald-300" : "text-slate-400"
+                        isSelected ? "text-emerald-800" : "text-stone-500"
                     }`}
                 >
                     {isSelected ? "Selected" : "Tap to select"}

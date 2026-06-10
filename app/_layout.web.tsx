@@ -1,4 +1,4 @@
-import "../nativewind.css";
+import "../global.css";
 
 import { Stack } from "expo-router";
 

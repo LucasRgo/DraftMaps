@@ -28,26 +28,30 @@ export function LocationScreenContent({
     onBack,
     reload,
 }: LocationScreenContentProps) {
-    let content;
+    function renderContent() {
+        if (isLoading) {
+            return <LoadingState message="Loading place details..." />;
+        }
 
-    if (isLoading) {
-        content = <LoadingState message="Loading place details..." />;
-    } else if (error) {
-        content = <ErrorState message={error} onRetry={reload} />;
-    } else if (!data) {
-        content = (
-            <EmptyState
-                title="Location not found"
-                message="We could not find details for this place."
-            />
-        );
-    } else {
-        content = <LocationDetails location={data} />;
+        if (error) {
+            return <ErrorState message={error} onRetry={reload} />;
+        }
+
+        if (!data) {
+            return (
+                <EmptyState
+                    title="Location not found"
+                    message="We could not find details for this place."
+                />
+            );
+        }
+
+        return <LocationDetails location={data} />;
     }
 
     return (
         <Screen title="Location">
-            <View className="flex-1 gap-4">
+            <View className="flex-1 gap-3">
                 <View className="self-start">
                     <AppButton onPress={onBack} title="Back" />
                 </View>
@@ -56,7 +60,7 @@ export function LocationScreenContent({
                     className="flex-1"
                     contentContainerClassName="pb-6"
                 >
-                    {content}
+                    {renderContent()}
                 </ScrollView>
             </View>
         </Screen>

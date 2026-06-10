@@ -18,11 +18,11 @@ export function ErrorState({
     const normalizedMessage = message?.trim() ? message : FALLBACK_MESSAGE;
 
     return (
-        <View className="flex-1 items-center justify-center px-6 py-10">
-            <Text className="text-center text-lg font-semibold text-slate-100">
+        <View className="flex-1 items-center justify-center rounded-[28px] bg-white px-6 py-10">
+            <Text className="text-center text-lg font-semibold text-stone-900">
                 Something went wrong
             </Text>
-            <Text className="mt-2 text-center text-base leading-6 text-slate-300">
+            <Text className="mt-2 text-center text-base leading-6 text-stone-600">
                 {normalizedMessage}
             </Text>
             {onRetry ? (

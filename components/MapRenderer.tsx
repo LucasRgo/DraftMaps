@@ -12,8 +12,8 @@ export type MapRendererProps = {
 
 function MapPlaceholder() {
     return (
-        <View className="h-80 items-center justify-center rounded-[28px] border border-slate-800 bg-slate-950 px-6">
-            <Text className="text-base font-medium text-slate-100">
+        <View className="h-[320px] items-center justify-center rounded-[28px] border border-stone-200 bg-stone-100 px-6">
+            <Text className="text-base font-medium text-stone-700">
                 Loading map...
             </Text>
         </View>
@@ -44,5 +44,9 @@ export function MapRenderer(props: MapRendererProps) {
         return <WebMapRenderer {...props} />;
     }
 
-    return <MapPlaceholder />;
+    const { MapRenderer: NativeMapRenderer } = require("./MapRenderer.native") as {
+        MapRenderer: (nativeProps: MapRendererProps) => JSX.Element;
+    };
+
+    return <NativeMapRenderer {...props} />;
 }

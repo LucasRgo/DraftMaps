@@ -9,7 +9,6 @@ module.exports = function (api) {
                     jsxImportSource: "nativewind",
                 },
             ],
-            "nativewind/babel",
         ],
     };
 };
