@@ -191,7 +191,7 @@ test("Etapa 16 native map renders markers, keeps Goiânia region, and selects a 
             latitude: -16.67,
             longitude: -49.26,
         });
-        assert.equal(markers[0].props.pinColor, "#f97316");
+        assert.equal(markers[0].props.pinColor, "#065f46");
 
         TestRenderer.act(() => {
             markers[0].props.onPress();

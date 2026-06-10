@@ -15,3 +15,20 @@ export function getLocationsPanelSummary(
 export function getLocationsPanelToggleLabel(isOpen: boolean): string {
     return isOpen ? "Hide list" : "Show list";
 }
+
+type SelectableLocation = {
+    id: string;
+};
+
+export function getSelectedLocation<T extends SelectableLocation>(
+    locations: T[],
+    selectedLocationId: string | null,
+): T | null {
+    if (!selectedLocationId) {
+        return null;
+    }
+
+    return (
+        locations.find((location) => location.id === selectedLocationId) ?? null
+    );
+}

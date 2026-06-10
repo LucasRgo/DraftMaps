@@ -12,6 +12,11 @@ import { SelectedLocationCard } from "../components/SelectedLocationCard";
 import { useLocations } from "../hooks/useLocations";
 import { GOIANIA } from "../types/city";
 import type { Location } from "../types/location";
+import {
+    getLocationsPanelSummary,
+    getLocationsPanelToggleLabel,
+    getSelectedLocation,
+} from "../utils/homePanel";
 
 type LocationsScreenContentProps = {
     data: Location[];
@@ -31,12 +36,15 @@ export function LocationsScreenContent({
     selectedLocationId = null,
 }: LocationsScreenContentProps) {
     const [isListOpen, setIsListOpen] = useState(false);
-    const selectedLocation =
-        data.find((location) => location.id === selectedLocationId) ?? null;
-    const listToggleLabel = isListOpen ? "Hide list" : "Show list";
+    const selectedLocation = getSelectedLocation(data, selectedLocationId);
+    const listToggleLabel = getLocationsPanelToggleLabel(isListOpen);
     const listToggleAccessibilityLabel = isListOpen
         ? "Hide locations list"
         : "Show locations list";
+    const panelSummary = getLocationsPanelSummary(
+        data.length,
+        selectedLocation?.name ?? null,
+    );
 
     function handleSelectLocation(locationId: string) {
         onSelectLocation?.(locationId);
@@ -75,12 +83,17 @@ export function LocationsScreenContent({
 
     return (
         <Screen title="DraftMaps" subtitle={GOIANIA.subtitle}>
-            <View className="flex-1 gap-4">
-                <View className="rounded-[28px] border border-stone-200 bg-white px-3 py-3 shadow-sm shadow-stone-300/30">
+            <View className="flex-1 gap-4 xl:flex-row">
+                <View className="rounded-[28px] border border-stone-200 bg-white px-3 py-3 shadow-sm shadow-stone-300/30 xl:flex-1">
                     <View className="mb-3 flex-row items-center justify-between gap-3 px-1">
-                        <Text className="text-sm font-medium text-stone-500">
-                            {GOIANIA.name}
-                        </Text>
+                        <View className="flex-1 gap-1 pr-3">
+                            <Text className="text-sm font-medium text-stone-500">
+                                {GOIANIA.name}
+                            </Text>
+                            <Text className="text-sm leading-5 text-stone-600">
+                                {panelSummary}
+                            </Text>
+                        </View>
 
                         <Pressable
                             accessibilityLabel={listToggleAccessibilityLabel}
@@ -103,7 +116,7 @@ export function LocationsScreenContent({
                     />
                 </View>
 
-                <View className="rounded-[28px] border border-stone-200 bg-white px-4 py-4 shadow-sm shadow-stone-300/30">
+                <View className="rounded-[28px] border border-stone-200 bg-white px-4 py-4 shadow-sm shadow-stone-300/30 xl:w-[360px]">
                     {selectedLocation ? (
                         <SelectedLocationCard
                             location={selectedLocation}

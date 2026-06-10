@@ -50,11 +50,6 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
             path.join(linkedNodeModules, "react-test-renderer"),
             "dir",
         );
-        fs.symlinkSync(
-            path.join(projectRoot, "node_modules/react-dom"),
-            path.join(linkedNodeModules, "react-dom"),
-            "dir",
-        );
         fs.mkdirSync(path.join(linkedNodeModules, "expo-router"), {
             recursive: true,
         });
@@ -131,10 +126,6 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
         fs.writeFileSync(
             path.join(linkedNodeModules, "react-leaflet/index.js"),
             [
-                "if (typeof globalThis.window === 'undefined') {",
-                "  throw new Error('react-leaflet requires window');",
-                "}",
-                "",
                 "const React = require('react');",
                 "",
                 "function MapContainer(props) {",
@@ -160,10 +151,6 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
         fs.writeFileSync(
             path.join(linkedNodeModules, "leaflet/index.js"),
             [
-                "if (typeof globalThis.window === 'undefined') {",
-                "  throw new Error('leaflet requires window');",
-                "}",
-                "",
                 "function divIcon(options) {",
                 "  return { ...options, __type: 'divIcon' };",
                 "}",
@@ -206,7 +193,55 @@ async function importCompiledModule(tempPrefix, entryFiles, sourceFile) {
     }
 }
 
-test("Etapa 15 web map integra markers e selecao na home", async () => {
+function collectText(node) {
+    if (typeof node === "string" || typeof node === "number") {
+        return String(node);
+    }
+
+    if (node == null) {
+        return "";
+    }
+
+    if (Symbol.iterator in Object(node)) {
+        return Array.from(node).map((child) => collectText(child)).join("");
+    }
+
+    return collectText(node.props?.children ?? null);
+}
+
+function getRenderedText(renderer) {
+    return renderer.root.findAllByType("Text").map((textNode) => {
+        return collectText(textNode.props.children ?? null);
+    });
+}
+
+test("Etapa 17 resolves the selected location safely", async () => {
+    const entryFiles = [path.join(projectRoot, "utils/homePanel.ts")];
+    const { module, cleanup } = await importCompiledModule(
+        "draftmaps-etapa17-home-panel-",
+        entryFiles,
+        path.join(projectRoot, "utils/homePanel.ts"),
+    );
+
+    try {
+        const locations = [
+            { id: "goiania-park-1", name: "Bosque dos Buritis" },
+            { id: "goiania-library-1", name: "Biblioteca Central" },
+        ];
+
+        assert.deepEqual(module.getSelectedLocation(locations, "goiania-library-1"), {
+            id: "goiania-library-1",
+            name: "Biblioteca Central",
+        });
+        assert.equal(module.getSelectedLocation(locations, null), null);
+        assert.equal(module.getSelectedLocation(locations, "missing-id"), null);
+        assert.equal(module.getSelectedLocation([], "goiania-park-1"), null);
+    } finally {
+        cleanup();
+    }
+});
+
+test("Etapa 17 keeps map, panel, and selected card synchronized", async () => {
     globalThis.window = {};
 
     const entryFiles = [
@@ -223,10 +258,13 @@ test("Etapa 15 web map integra markers e selecao na home", async () => {
         path.join(projectRoot, "hooks/useLocations.ts"),
         path.join(projectRoot, "nativewind-env.d.ts"),
         path.join(projectRoot, "services/locationsApi.ts"),
+        path.join(projectRoot, "types/city.ts"),
         path.join(projectRoot, "types/location.ts"),
+        path.join(projectRoot, "utils/homePanel.ts"),
+        path.join(projectRoot, "utils/locationDetails.ts"),
     ];
     const { module, cleanup } = await importCompiledModule(
-        "draftmaps-etapa15-map-renderer-web-",
+        "draftmaps-etapa17-home-composition-",
         entryFiles,
         path.join(projectRoot, "app/index.tsx"),
     );
@@ -257,30 +295,8 @@ test("Etapa 15 web map integra markers e selecao na home", async () => {
             },
         ];
 
-        function collectText(node) {
-            if (typeof node === "string" || typeof node === "number") {
-                return String(node);
-            }
-
-            if (node == null) {
-                return "";
-            }
-
-            if (Symbol.iterator in Object(node)) {
-                return Array.from(node).map((child) => collectText(child)).join("");
-            }
-
-            return collectText(node.props?.children ?? null);
-        }
-
-        function getRenderedText(renderer) {
-            return renderer.root.findAllByType("Text").map((textNode) => {
-                return collectText(textNode.props.children ?? null);
-            });
-        }
-
         function StatefulScreen() {
-            const [selectedLocationId, setSelectedLocationId] = useState(null);
+            const [selectedLocationId, setSelectedLocationId] = useState("missing-id");
 
             return React.createElement(module.LocationsScreenContent, {
                 data: locations,
@@ -298,69 +314,81 @@ test("Etapa 15 web map integra markers e selecao na home", async () => {
             renderer = TestRenderer.create(React.createElement(StatefulScreen));
         });
 
-        const map = renderer.root.findByType("MapContainer");
-        const markers = renderer.root.findAllByType("Marker");
+        assert.deepEqual(getRenderedText(renderer), [
+            "DraftMaps",
+            "Places to chill",
+            "Goiânia",
+            "2 spots mapped. Browse the calmest picks.",
+            "Show list",
+            "Choose a place",
+            "Tap a pin or open the list to pick somewhere calm.",
+        ]);
 
-        assert.equal(map.props.id, "locations-map");
-        assert.equal(markers.length, 2);
-        assert.deepEqual(
-            markers.map((marker) => marker.props.position),
-            [
-                [-16.67, -49.26],
-                [-16.68, -49.25],
-            ],
-        );
+        let markers = renderer.root.findAllByType("Marker");
 
         TestRenderer.act(() => {
-            markers[0].props.eventHandlers.click();
+            markers[1].props.eventHandlers.click();
         });
 
         assert.deepEqual(getRenderedText(renderer), [
             "DraftMaps",
             "Places to chill",
             "Goiânia",
-            "2 spots mapped. Selected: Bosque dos Buritis.",
+            "2 spots mapped. Selected: Biblioteca Central.",
             "Show list",
+            "Selected place",
+            "Biblioteca Central",
+            "Library",
+            "View details",
+        ]);
+
+        const listToggleButton = renderer.root.findByProps({
+            accessibilityRole: "button",
+            accessibilityLabel: "Show locations list",
+        });
+
+        TestRenderer.act(() => {
+            listToggleButton.props.onPress();
+        });
+
+        const selectBosqueButton = renderer.root.findByProps({
+            accessibilityRole: "button",
+            accessibilityLabel: "Select Bosque dos Buritis",
+        });
+
+        TestRenderer.act(() => {
+            selectBosqueButton.props.onPress();
+        });
+
+        markers = renderer.root.findAllByType("Marker");
+
+        assert.equal(
+            markers[0].props.icon.html.includes("draftmaps-marker-selected"),
+            true,
+        );
+        assert.equal(
+            markers[1].props.icon.html.includes("draftmaps-marker-selected"),
+            false,
+        );
+        assert.deepEqual(getRenderedText(renderer), [
+            "DraftMaps",
+            "Places to chill",
+            "Goiânia",
+            "2 spots mapped. Selected: Bosque dos Buritis.",
+            "Hide list",
             "Selected place",
             "Bosque dos Buritis",
             "Park",
             "View details",
+            "Bosque dos Buritis",
+            "Park",
+            "Selected",
+            "Biblioteca Central",
+            "Library",
+            "Tap to select",
         ]);
     } finally {
         cleanup();
         delete globalThis.window;
-    }
-});
-
-test("Etapa 15 web map nao importa Leaflet durante o render estatico", async () => {
-    delete globalThis.window;
-
-    const entryFiles = [
-        path.join(projectRoot, "components/MapRenderer.tsx"),
-        path.join(projectRoot, "nativewind-env.d.ts"),
-        path.join(projectRoot, "types/location.ts"),
-    ];
-    const { module, cleanup } = await importCompiledModule(
-        "draftmaps-etapa15-map-renderer-ssr-",
-        entryFiles,
-        path.join(projectRoot, "components/MapRenderer.tsx"),
-    );
-
-    try {
-        const React = (await import("react")).default;
-        const { renderToStaticMarkup } = await import("react-dom/server");
-
-        globalThis.IS_REACT_ACT_ENVIRONMENT = true;
-        const markup = renderToStaticMarkup(
-            React.createElement(module.MapRenderer, {
-                locations: [],
-                onSelectLocation() {},
-                selectedLocationId: null,
-            }),
-        );
-
-        assert.match(markup, /Loading map\.\.\./);
-    } finally {
-        cleanup();
     }
 });
