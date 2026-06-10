@@ -83,9 +83,9 @@ export function LocationsScreenContent({
 
     return (
         <Screen title="DraftMaps" subtitle={GOIANIA.subtitle}>
-            <View className="flex-1 gap-4 xl:flex-row">
-                <View className="rounded-[28px] border border-stone-200 bg-white px-3 py-3 shadow-sm shadow-stone-300/30 xl:flex-1">
-                    <View className="mb-3 flex-row items-center justify-between gap-3 px-1">
+            <View className="flex-1 gap-5 lg:flex-row">
+                <View className="flex-1 overflow-hidden rounded-[24px] border border-stone-200 bg-white px-4 py-4 shadow-md shadow-stone-300/20 lg:flex-1">
+                    <View className="mb-4 flex-row items-center justify-between gap-3 px-1">
                         <View className="flex-1 gap-1 pr-3">
                             <Text className="text-sm font-medium text-stone-500">
                                 {GOIANIA.name}
@@ -98,12 +98,12 @@ export function LocationsScreenContent({
                         <Pressable
                             accessibilityLabel={listToggleAccessibilityLabel}
                             accessibilityRole="button"
-                            className="rounded-full bg-stone-100 px-4 py-2 active:bg-stone-200"
+                            className="rounded-full bg-stone-900 px-4 py-2 active:bg-stone-800"
                             onPress={() => {
                                 setIsListOpen((currentValue) => !currentValue);
                             }}
                         >
-                            <Text className="text-sm font-semibold text-stone-700">
+                            <Text className="text-sm font-semibold text-stone-50">
                                 {listToggleLabel}
                             </Text>
                         </Pressable>
@@ -116,14 +116,14 @@ export function LocationsScreenContent({
                     />
                 </View>
 
-                <View className="rounded-[28px] border border-stone-200 bg-white px-4 py-4 shadow-sm shadow-stone-300/30 xl:w-[360px]">
+                <View className="rounded-[24px] border border-stone-200 bg-white px-5 py-5 shadow-md shadow-stone-300/20 lg:w-[360px]">
                     {selectedLocation ? (
                         <SelectedLocationCard
                             location={selectedLocation}
                             onViewDetails={openDetails}
                         />
                     ) : (
-                        <View className="gap-2">
+                        <View className="gap-2 rounded-[20px] bg-stone-50 px-4 py-4">
                             <Text className="text-xs font-semibold uppercase tracking-[1.5px] text-stone-500">
                                 Choose a place
                             </Text>
@@ -135,7 +135,7 @@ export function LocationsScreenContent({
 
                     {isListOpen ? (
                         <ScrollView
-                            className="mt-4"
+                            className="mt-5"
                             contentContainerClassName="gap-3 pb-1"
                             showsVerticalScrollIndicator={false}
                             style={{ maxHeight: 240 }}

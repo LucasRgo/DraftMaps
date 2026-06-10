@@ -28,7 +28,7 @@ export function MapRenderer({
     });
 
     return (
-        <View className="overflow-hidden rounded-[28px] border border-stone-200 bg-stone-100">
+        <View className="overflow-hidden rounded-[24px] border border-stone-200 bg-stone-100">
             <MapView
                 initialRegion={initialRegion}
                 loadingEnabled

@@ -18,12 +18,12 @@ export function SelectedLocationCard({
     }
 
     return (
-        <View className="rounded-[24px] border border-emerald-200 bg-emerald-50 px-4 py-4">
-            <View className="gap-2">
+        <View className="rounded-[20px] border border-emerald-200 bg-emerald-50/80 px-5 py-5 shadow-sm shadow-emerald-200/40">
+            <View className="gap-1.5">
                 <Text className="text-xs font-semibold uppercase tracking-[1.5px] text-emerald-800">
                     Selected place
                 </Text>
-                <Text className="text-2xl font-semibold text-stone-900">
+                <Text className="text-xl font-bold text-stone-900">
                     {location.name}
                 </Text>
                 <Text className="text-sm font-medium text-emerald-900">
@@ -31,7 +31,7 @@ export function SelectedLocationCard({
                 </Text>
             </View>
 
-            <View className="mt-4 self-start">
+            <View className="mt-5 self-start">
                 <AppButton
                     accessibilityLabel={`View details for ${location.name}`}
                     onPress={() => {

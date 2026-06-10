@@ -69,7 +69,7 @@ export function MapRenderer({
 
     if (!leafletModules) {
         return (
-            <View className="h-[320px] items-center justify-center rounded-[28px] border border-stone-200 bg-stone-100 px-6">
+            <View className="h-[320px] items-center justify-center rounded-[24px] border border-stone-200 bg-stone-100 px-6">
                 <View className="hidden" />
             </View>
         );
@@ -78,7 +78,7 @@ export function MapRenderer({
     const { MapContainer, Marker, TileLayer, divIcon } = leafletModules;
 
     return (
-        <View className="overflow-hidden rounded-[28px] border border-stone-200 bg-stone-100">
+        <View className="overflow-hidden rounded-[24px] border border-stone-200 bg-stone-100">
             <MapContainer
                 center={goianiaCenter}
                 className="h-[320px] w-full"

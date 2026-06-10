@@ -136,13 +136,27 @@ export async function handleRequest(request: Request): Promise<Response> {
     return notFoundResponse();
 }
 
+type WorkerEnv = {
+    ASSETS?: { fetch: (request: Request) => Promise<Response> };
+};
+
 const worker = {
-    async fetch(request: Request): Promise<Response> {
-        try {
-            return await handleRequest(request);
-        } catch {
-            return jsonResponse({ error: "Internal server error" }, 500);
+    async fetch(request: Request, env: WorkerEnv): Promise<Response> {
+        const url = new URL(request.url);
+
+        if (url.pathname.startsWith("/api/")) {
+            try {
+                return await handleRequest(request);
+            } catch {
+                return jsonResponse({ error: "Internal server error" }, 500);
+            }
         }
+
+        if (env.ASSETS) {
+            return env.ASSETS.fetch(request);
+        }
+
+        return notFoundResponse();
     },
 };
 

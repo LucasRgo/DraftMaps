@@ -25,11 +25,11 @@ export function AppButton({
         <Pressable
             accessibilityLabel={accessibilityLabel ?? title}
             accessibilityRole="button"
-            className="rounded-full bg-stone-950 px-5 py-3.5 active:bg-stone-800 disabled:bg-stone-300"
+            className="rounded-full bg-stone-900 px-5 py-3 active:bg-stone-800 disabled:bg-stone-300"
             disabled={disabled}
             onPress={handlePress}
         >
-            <Text className="text-center text-base font-semibold text-stone-50">
+            <Text className="text-center text-sm font-semibold text-stone-50">
                 {title}
             </Text>
         </Pressable>

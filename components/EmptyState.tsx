@@ -10,7 +10,7 @@ export function EmptyState({
     title = "No places found",
 }: EmptyStateProps) {
     return (
-        <View className="flex-1 items-center justify-center rounded-[28px] bg-stone-50 px-6 py-10">
+        <View className="flex-1 items-center justify-center rounded-[24px] bg-white px-6 py-10 shadow-sm shadow-stone-300/20">
             <Text className="text-center text-lg font-semibold text-stone-900">
                 {title}
             </Text>
