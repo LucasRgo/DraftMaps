@@ -1,51 +1,104 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
-import { probeLocationsApi } from "../services/locationsApi";
+import { ScrollView, Text, View } from "react-native";
 
-export default function Index() {
-    const [statusMessage, setStatusMessage] = useState(
-        "Toque no botão para testar a API.",
-    );
-    const [isChecking, setIsChecking] = useState(false);
+import { EmptyState } from "../components/EmptyState";
+import { ErrorState } from "../components/ErrorState";
+import { LoadingState } from "../components/LoadingState";
+import { LocationCard } from "../components/LocationCard";
+import { Screen } from "../components/Screen";
+import { useLocations } from "../hooks/useLocations";
+import type { Location } from "../types/location";
 
-    async function handleCheckApi() {
-        setIsChecking(true);
+type LocationsScreenContentProps = {
+    data: Location[];
+    error: string | null;
+    isLoading: boolean;
+    onSelectLocation?: (locationId: string) => void;
+    reload: () => void;
+    selectedLocationId?: string | null;
+};
 
-        try {
-            const message = await probeLocationsApi();
-            setStatusMessage(message);
-        } catch (error) {
-            setStatusMessage(
-                error instanceof Error
-                    ? error.message
-                    : "Falha ao chamar a API",
-            );
-        } finally {
-            setIsChecking(false);
-        }
+export function LocationsScreenContent({
+    data,
+    error,
+    isLoading,
+    onSelectLocation,
+    reload,
+    selectedLocationId = null,
+}: LocationsScreenContentProps) {
+    const selectedLocation =
+        data.find((location) => location.id === selectedLocationId) ?? null;
+
+    function handleSelectLocation(locationId: string) {
+        onSelectLocation?.(locationId);
+    }
+
+    let content;
+
+    if (isLoading) {
+        content = <LoadingState />;
+    } else if (error) {
+        content = <ErrorState message={error} onRetry={reload} />;
+    } else if (data.length === 0) {
+        content = <EmptyState />;
+    } else {
+        content = (
+            <View className="flex-1 gap-4">
+                <ScrollView
+                    className="flex-1"
+                    contentContainerClassName="gap-3 pb-6"
+                >
+                    {data.map((location) => (
+                        <LocationCard
+                            key={location.id}
+                            location={location}
+                            isSelected={location.id === selectedLocationId}
+                            onPress={() => {
+                                handleSelectLocation(location.id);
+                            }}
+                        />
+                    ))}
+                </ScrollView>
+
+                {selectedLocation ? (
+                    <View className="rounded-3xl border border-emerald-400 bg-slate-950 px-4 py-4">
+                        <Text className="text-sm uppercase tracking-wide text-emerald-300">
+                            Selected place
+                        </Text>
+                        <Text className="mt-2 text-xl font-semibold text-slate-100">
+                            {selectedLocation.name}
+                        </Text>
+                        <Text className="mt-1 text-sm text-slate-300">
+                            {selectedLocation.category.charAt(0).toUpperCase() +
+                                selectedLocation.category.slice(1)}
+                        </Text>
+                    </View>
+                ) : null}
+            </View>
+        );
     }
 
     return (
-        <View className="flex-1 items-center justify-center bg-slate-900 px-6">
-            <Text className="text-4xl font-bold text-slate-200">DraftMaps</Text>
-            <Text className="mt-2 text-base text-slate-200">
-                Places to chill
-            </Text>
+        <Screen title="DraftMaps" subtitle="Places for you to chill">
+            {content}
+        </Screen>
+    );
+}
 
-            <Pressable
-                accessibilityRole="button"
-                onPress={handleCheckApi}
-                disabled={isChecking}
-                className="mt-8 rounded-full bg-emerald-500 px-5 py-3 active:bg-emerald-600 disabled:opacity-60"
-            >
-                <Text className="text-base font-semibold text-slate-950">
-                    {isChecking ? "Testando API..." : "Testar API"}
-                </Text>
-            </Pressable>
+export default function Index() {
+    const locationsState = useLocations();
+    const [selectedLocationId, setSelectedLocationId] = useState<string | null>(
+        null,
+    );
 
-            <Text className="mt-4 text-center text-sm text-slate-300">
-                {statusMessage}
-            </Text>
-        </View>
+    return (
+        <LocationsScreenContent
+            data={locationsState.data}
+            error={locationsState.error}
+            isLoading={locationsState.isLoading}
+            reload={locationsState.reload}
+            selectedLocationId={selectedLocationId}
+            onSelectLocation={setSelectedLocationId}
+        />
     );
 }
