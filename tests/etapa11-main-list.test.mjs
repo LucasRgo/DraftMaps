@@ -9,6 +9,7 @@ import assert from "node:assert/strict";
 const projectRoot = process.cwd();
 const componentTestFiles = [
     path.join(projectRoot, "components/LocationCard.test.tsx"),
+    path.join(projectRoot, "components/SelectedLocationCard.test.tsx"),
     path.join(projectRoot, "tests/app-index.test.tsx"),
 ];
 const sourceFiles = [
@@ -19,6 +20,7 @@ const sourceFiles = [
     path.join(projectRoot, "components/ErrorState.tsx"),
     path.join(projectRoot, "components/LoadingState.tsx"),
     path.join(projectRoot, "components/LocationCard.tsx"),
+    path.join(projectRoot, "components/SelectedLocationCard.tsx"),
     path.join(projectRoot, "components/Screen.tsx"),
     path.join(projectRoot, "hooks/useLocations.ts"),
     path.join(projectRoot, "services/locationsApi.ts"),
@@ -66,6 +68,33 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
             path.join(projectRoot, "node_modules/react-test-renderer"),
             path.join(linkedNodeModules, "react-test-renderer"),
             "dir",
+        );
+        fs.mkdirSync(path.join(linkedNodeModules, "expo-router"), {
+            recursive: true,
+        });
+        fs.writeFileSync(
+            path.join(linkedNodeModules, "expo-router/index.js"),
+            [
+                "const router = {",
+                "  push() {},",
+                "  navigate() {},",
+                "  replace() {},",
+                "  back() {},",
+                "  canGoBack() { return false; },",
+                "};",
+                "",
+                "function useRouter() {",
+                "  return router;",
+                "}",
+                "",
+                "function useLocalSearchParams() {",
+                "  return {};",
+                "}",
+                "",
+                "module.exports = { router, useRouter, useLocalSearchParams };",
+                "",
+            ].join("\n"),
+            "utf8",
         );
         fs.writeFileSync(
             path.join(linkedNodeModules, "react-native.js"),

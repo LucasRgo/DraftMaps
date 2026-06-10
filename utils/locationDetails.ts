@@ -21,18 +21,18 @@ export function resolveLocationIdParam(
 
 export function formatLocationCategoryLabel(category: string): string {
     switch (category) {
-        case "bookstore":
-            return "Bookstore";
-        case "cafe":
-            return "Cafe";
-        case "library":
-            return "Library";
-        case "museum":
-            return "Museum";
-        case "park":
-            return "Park";
-        default:
-            return "Place";
+    case "bookstore":
+        return "Bookstore";
+    case "cafe":
+        return "Cafe";
+    case "library":
+        return "Library";
+    case "museum":
+        return "Museum";
+    case "park":
+        return "Park";
+    default:
+        return "Place";
     }
 }
 

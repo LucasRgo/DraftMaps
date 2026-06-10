@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import React, { useState } from "react";
+import { router } from "expo-router";
 import TestRenderer from "react-test-renderer";
 import { Text } from "react-native";
 
@@ -189,7 +190,94 @@ test("LocationsScreenContent renders the list and updates selected location", ()
         "Selected place",
         "Bosque dos Buritis",
         "Park",
+        "View details",
     ]);
+});
+
+test("LocationsScreenContent hides the selected card actions when no location is selected", () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+
+    TestRenderer.act(() => {
+        renderer = TestRenderer.create(
+            <LocationsScreenContent
+                data={locations}
+                error={null}
+                isLoading={false}
+                reload={() => {}}
+            />,
+        );
+    });
+
+    assert.deepEqual(getRenderedText(renderer), [
+        "DraftMaps",
+        "Places for you to chill",
+        "Bosque dos Buritis",
+        "Park",
+        "Tap to select",
+        "Biblioteca Central",
+        "Library",
+        "Tap to select",
+    ]);
+});
+
+test("LocationsScreenContent navigates to the selected location details route", () => {
+    let renderer!: TestRenderer.ReactTestRenderer;
+    const pushCalls: unknown[] = [];
+    const originalPush = router.push;
+
+    router.push = (href: unknown) => {
+        pushCalls.push(href);
+    };
+
+    function StatefulScreen() {
+        const [selectedLocationId, setSelectedLocationId] = useState<
+            string | null
+        >(null);
+
+        return (
+            <LocationsScreenContent
+                data={locations}
+                error={null}
+                isLoading={false}
+                reload={() => {}}
+                selectedLocationId={selectedLocationId}
+                onSelectLocation={setSelectedLocationId}
+            />
+        );
+    }
+
+    try {
+        TestRenderer.act(() => {
+            renderer = TestRenderer.create(<StatefulScreen />);
+        });
+
+        const firstCard = renderer.root.findByProps({
+            accessibilityRole: "button",
+            accessibilityLabel: "Select Bosque dos Buritis",
+        });
+
+        TestRenderer.act(() => {
+            firstCard.props.onPress();
+        });
+
+        const viewDetailsButton = renderer.root.findByProps({
+            accessibilityRole: "button",
+            accessibilityLabel: "View details for Bosque dos Buritis",
+        });
+
+        TestRenderer.act(() => {
+            viewDetailsButton.props.onPress();
+        });
+
+        assert.deepEqual(pushCalls, [
+            {
+                pathname: "/locations/[id]",
+                params: { id: "goiania-park-1" },
+            },
+        ]);
+    } finally {
+        router.push = originalPush;
+    }
 });
 
 test("Index exports a mountable default screen component", () => {

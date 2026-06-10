@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { router } from "expo-router";
+import { ScrollView, View } from "react-native";
 
 import { EmptyState } from "../components/EmptyState";
 import { ErrorState } from "../components/ErrorState";
 import { LoadingState } from "../components/LoadingState";
 import { LocationCard } from "../components/LocationCard";
+import { SelectedLocationCard } from "../components/SelectedLocationCard";
 import { Screen } from "../components/Screen";
 import { useLocations } from "../hooks/useLocations";
 import type { Location } from "../types/location";
@@ -60,20 +62,15 @@ export function LocationsScreenContent({
                     ))}
                 </ScrollView>
 
-                {selectedLocation ? (
-                    <View className="rounded-3xl border border-emerald-400 bg-slate-950 px-4 py-4">
-                        <Text className="text-sm uppercase tracking-wide text-emerald-300">
-                            Selected place
-                        </Text>
-                        <Text className="mt-2 text-xl font-semibold text-slate-100">
-                            {selectedLocation.name}
-                        </Text>
-                        <Text className="mt-1 text-sm text-slate-300">
-                            {selectedLocation.category.charAt(0).toUpperCase() +
-                                selectedLocation.category.slice(1)}
-                        </Text>
-                    </View>
-                ) : null}
+                <SelectedLocationCard
+                    location={selectedLocation}
+                    onViewDetails={(locationId) => {
+                        router.push({
+                            pathname: "/locations/[id]",
+                            params: { id: locationId },
+                        });
+                    }}
+                />
             </View>
         );
     }

@@ -153,7 +153,7 @@ test("Etapa 6 builds a Goiânia Overpass query with the required categories", as
     try {
         const query = module.buildGoianiaOverpassQuery();
 
-        assert.match(query, /-16\.835,-49\.43,-16\.58,-49\.17/);
+        assert.match(query, /-16\.76,-49\.36,-16\.6,-49\.16/);
         assert.match(query, /\["amenity"="cafe"\]/);
         assert.match(query, /\["amenity"="library"\]/);
         assert.match(query, /\["tourism"="museum"\]/);
@@ -162,6 +162,91 @@ test("Etapa 6 builds a Goiânia Overpass query with the required categories", as
         assert.match(query, /out center tags/);
     } finally {
         cleanup();
+    }
+});
+
+test("Etapa 6 sends the Overpass query in the data form field", async () => {
+    const originalFetch = globalThis.fetch;
+    let requestedUrl = "";
+    let requestMethod = "";
+    let requestContentType = "";
+    let requestHost = "";
+    let requestBody = "";
+
+    globalThis.fetch = async (input, init) => {
+        requestedUrl = String(input);
+        requestMethod = init?.method ?? "";
+        requestContentType = String(init?.headers?.["content-type"] ?? "");
+        requestHost = String(init?.headers?.host ?? "");
+        requestBody = String(init?.body ?? "");
+
+        return new Response(JSON.stringify({ elements: [] }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+        });
+    };
+
+    const { module, cleanup } = await importCompiledModule(
+        "draftmaps-etapa6-overpass-request-",
+        path.join(projectRoot, "worker/overpassClient.ts"),
+    );
+
+    try {
+        await module.fetchGoianiaOverpassElements();
+
+        assert.equal(
+            requestedUrl,
+            "http://65.109.112.52/api/interpreter",
+        );
+        assert.equal(requestMethod, "POST");
+        assert.equal(
+            requestContentType,
+            "application/x-www-form-urlencoded; charset=utf-8",
+        );
+        assert.equal(requestHost, "overpass-api.de");
+        assert.match(requestBody, /^data=/);
+        assert.equal(
+            requestBody.includes(encodeURIComponent("[out:json][timeout:8];")),
+            true,
+        );
+    } finally {
+        cleanup();
+        globalThis.fetch = originalFetch;
+    }
+});
+
+test("Etapa 6 retries the next Overpass endpoint when the first one fails", async () => {
+    const originalFetch = globalThis.fetch;
+    const requestedUrls = [];
+
+    globalThis.fetch = async (input) => {
+        requestedUrls.push(String(input));
+
+        if (requestedUrls.length === 1) {
+            throw new Error("connect timeout");
+        }
+
+        return new Response(JSON.stringify({ elements: [] }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+        });
+    };
+
+    const { module, cleanup } = await importCompiledModule(
+        "draftmaps-etapa6-overpass-fallback-",
+        path.join(projectRoot, "worker/overpassClient.ts"),
+    );
+
+    try {
+        await module.fetchGoianiaOverpassElements();
+
+        assert.deepEqual(requestedUrls, [
+            "http://65.109.112.52/api/interpreter",
+            "https://overpass-api.de/api/interpreter",
+        ]);
+    } finally {
+        cleanup();
+        globalThis.fetch = originalFetch;
     }
 });
 

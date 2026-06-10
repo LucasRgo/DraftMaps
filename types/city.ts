@@ -43,5 +43,5 @@ export const GOIANIA: City = {
         latitude: -16.6869,
         longitude: -49.2648,
     },
-    bbox: [-16.835, -49.43, -16.58, -49.17],
+    bbox: [-16.76, -49.36, -16.6, -49.16],
 };

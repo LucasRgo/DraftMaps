@@ -365,6 +365,63 @@ test("Etapa 8 service falls back to the local Worker URL in development when the
     }
 });
 
+test("Etapa 8 service uses the current web origin when the base URL env var is absent in the browser", async () => {
+    const restoreEnv = setEnv({});
+    const originalFetch = globalThis.fetch;
+    const originalLocation = globalThis.location;
+    let requestedUrl = "";
+
+    globalThis.location = {
+        origin: "https://draftmaps-web.example",
+    };
+
+    globalThis.fetch = async (input) => {
+        requestedUrl = String(input);
+
+        return new Response(
+            JSON.stringify({
+                city: "goiania",
+                source: "fallback",
+                locations: [],
+            }),
+            {
+                status: 200,
+                headers: {
+                    "content-type": "application/json; charset=utf-8",
+                },
+            },
+        );
+    };
+
+    const { module, cleanup } = await importCompiledModule(
+        "draftmaps-etapa8-service-browser-base-url-",
+        servicePath,
+    );
+
+    try {
+        await module.fetchLocations();
+
+        assert.equal(
+            requestedUrl,
+            "https://draftmaps-web.example/api/locations",
+        );
+    } finally {
+        cleanup();
+        globalThis.fetch = originalFetch;
+        globalThis.location = originalLocation;
+        restoreEnv();
+    }
+});
+
+test("Etapa 8 service source uses static Expo public env access", () => {
+    const serviceSource = fs.readFileSync(servicePath, "utf8");
+
+    assert.match(
+        serviceSource,
+        /process\.env\.EXPO_PUBLIC_LOCATIONS_API_BASE_URL/,
+    );
+});
+
 test("Etapa 8 service rejects empty ids before calling fetch", async () => {
     const restoreEnv = setEnv({
         EXPO_PUBLIC_LOCATIONS_API_BASE_URL: "https://draftmaps.example",

@@ -83,6 +83,28 @@ Run typecheck:
 npm run typecheck
 ```
 
+## Worker Development
+
+Use the deployed Cloudflare Worker URL in [`.env`](/home/CJ/Projetos/DraftMaps/.env) so the app can run without starting a local Worker.
+
+Run the Worker locally with Wrangler:
+
+```bash
+npm run cf:dev
+```
+
+Run the Worker on Cloudflare runtime during development:
+
+```bash
+npm run cf:remote
+```
+
+If the Worker is already deployed, you can run only the app:
+
+```bash
+npm run web
+```
+
 ## Cloudflare Deploy
 
 Build the web app:
@@ -94,7 +116,14 @@ npm run build:web
 Deploy to Cloudflare:
 
 ```bash
-npm run deploy
+npm run cf:deploy
+```
+
+Deploy flow:
+
+```bash
+npm run build:web
+npm run cf:deploy
 ```
 
 ## Main Decisions

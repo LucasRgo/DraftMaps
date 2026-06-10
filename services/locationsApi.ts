@@ -1,23 +1,15 @@
 import { isValidLocationCategory, type Location } from "../types/location";
 
 const DEFAULT_LOCATIONS_API_BASE_URL = "http://127.0.0.1:8787";
-const LOCATIONS_API_BASE_URL_ENV = "EXPO_PUBLIC_LOCATIONS_API_BASE_URL";
 
 type JsonRecord = Record<string, unknown>;
-
-type ProcessLike = {
-    env?: Record<string, string | undefined>;
-};
 
 function isRecord(value: unknown): value is JsonRecord {
     return typeof value === "object" && value !== null;
 }
 
-function getEnvValue(name: string): string | undefined {
-    const processLike = (
-        globalThis as typeof globalThis & { process?: ProcessLike }
-    ).process;
-    const value = processLike?.env?.[name];
+function getConfiguredBaseUrl(): string | undefined {
+    const value = process.env.EXPO_PUBLIC_LOCATIONS_API_BASE_URL;
 
     if (typeof value !== "string") {
         return undefined;
@@ -32,11 +24,31 @@ function removeTrailingSlash(url: string): string {
     return url.replace(/\/+$/, "");
 }
 
+function getBrowserOrigin(): string | undefined {
+    const { location } = globalThis;
+
+    if (
+        !location ||
+        typeof location.origin !== "string" ||
+        location.origin.trim().length === 0
+    ) {
+        return undefined;
+    }
+
+    return removeTrailingSlash(location.origin);
+}
+
 export function resolveLocationsApiBaseUrl(): string {
-    const configuredBaseUrl = getEnvValue(LOCATIONS_API_BASE_URL_ENV);
+    const configuredBaseUrl = getConfiguredBaseUrl();
 
     if (configuredBaseUrl) {
         return removeTrailingSlash(configuredBaseUrl);
+    }
+
+    const browserOrigin = getBrowserOrigin();
+
+    if (browserOrigin) {
+        return browserOrigin;
     }
 
     return DEFAULT_LOCATIONS_API_BASE_URL;
