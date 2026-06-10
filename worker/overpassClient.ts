@@ -53,8 +53,8 @@ out center tags;
 }
 
 export async function fetchGoianiaOverpassElements(): Promise<
-    OverpassElement[]
-> {
+    OverpassElement[]> 
+{
     const { signal, cleanup } = createTimeoutSignal(OVERPASS_TIMEOUT_MS);
 
     try {
