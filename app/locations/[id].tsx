@@ -18,6 +18,39 @@ type LocationScreenContentProps = {
     reload: () => void;
 };
 
+type LocationBodyProps = {
+    data: Location | null;
+    error: string | null;
+    isLoading: boolean;
+    reload: () => void;
+};
+
+function LocationBody({
+    data,
+    error,
+    isLoading,
+    reload,
+}: LocationBodyProps) {
+    if (isLoading) {
+        return <LoadingState message="Loading place details..." />;
+    }
+
+    if (error) {
+        return <ErrorState message={error} onRetry={reload} />;
+    }
+
+    if (!data) {
+        return (
+            <EmptyState
+                title="Location not found"
+                message="We could not find details for this place."
+            />
+        );
+    }
+
+    return <LocationDetails location={data} />;
+}
+
 export { resolveLocationIdParam };
 
 export function LocationScreenContent({
@@ -27,27 +60,6 @@ export function LocationScreenContent({
     onBack,
     reload,
 }: LocationScreenContentProps) {
-    function renderContent() {
-        if (isLoading) {
-            return <LoadingState message="Loading place details..." />;
-        }
-
-        if (error) {
-            return <ErrorState message={error} onRetry={reload} />;
-        }
-
-        if (!data) {
-            return (
-                <EmptyState
-                    title="Location not found"
-                    message="We could not find details for this place."
-                />
-            );
-        }
-
-        return <LocationDetails location={data} />;
-    }
-
     const header = (
         <View className="flex-row items-center justify-between gap-4">
             <Pressable
@@ -74,7 +86,12 @@ export function LocationScreenContent({
                     className="flex-1"
                     contentContainerClassName="pb-6"
                 >
-                    {renderContent()}
+                    <LocationBody
+                        data={data}
+                        error={error}
+                        isLoading={isLoading}
+                        reload={reload}
+                    />
                 </ScrollView>
             </View>
         </Screen>

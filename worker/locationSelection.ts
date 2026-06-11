@@ -38,6 +38,26 @@ function removeDuplicateLocations(locations: Location[]): Location[] {
     return uniqueLocations;
 }
 
+function pickNextRoundRobinLocation(
+    locationsByCategory: Map<LocationCategory, Location[]>,
+    startIndex: number,
+): { location: Location; nextIndex: number } | null {
+    for (let offset = 0; offset < categoryOrder.length; offset += 1) {
+        const category = categoryOrder[(startIndex + offset) % categoryOrder.length];
+        const bucket = locationsByCategory.get(category);
+        const nextLocation = bucket?.shift();
+
+        if (nextLocation) {
+            return {
+                location: nextLocation,
+                nextIndex: (startIndex + offset + 1) % categoryOrder.length,
+            };
+        }
+    }
+
+    return null;
+}
+
 export function selectLocationsForMap(
     locations: Location[],
     options: SelectionOptions = {},
@@ -63,27 +83,14 @@ export function selectLocationsForMap(
     let categoryIndex = 0;
 
     while (selectedLocations.length < limit) {
-        let addedInRound = false;
+        const pick = pickNextRoundRobinLocation(locationsByCategory, categoryIndex);
 
-        for (let offset = 0; offset < categoryOrder.length; offset += 1) {
-            const category =
-                categoryOrder[(categoryIndex + offset) % categoryOrder.length];
-            const bucket = locationsByCategory.get(category);
-            const nextLocation = bucket?.shift();
-
-            if (!nextLocation) {
-                continue;
-            }
-
-            selectedLocations.push(nextLocation);
-            categoryIndex = (categoryIndex + offset + 1) % categoryOrder.length;
-            addedInRound = true;
-            break;
-        }
-
-        if (!addedInRound) {
+        if (!pick) {
             return selectedLocations;
         }
+
+        selectedLocations.push(pick.location);
+        categoryIndex = pick.nextIndex;
     }
 
     return selectedLocations;

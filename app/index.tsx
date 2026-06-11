@@ -23,6 +23,54 @@ type LocationsScreenContentProps = {
     selectedLocationId?: string | null;
 };
 
+type MapAndCardProps = {
+    locations: Location[];
+    selectedLocation: Location | null;
+    onSelectLocation?: (locationId: string) => void;
+    selectedLocationId?: string | null;
+};
+
+function MapAndCard({
+    locations,
+    selectedLocation,
+    onSelectLocation,
+    selectedLocationId,
+}: MapAndCardProps) {
+    function openDetails(locationId: string) {
+        router.push({
+            pathname: "/locations/[id]",
+            params: { id: locationId },
+        });
+    }
+
+    return (
+        <View className="flex-1 overflow-hidden bg-stone-200">
+            <MapRenderer
+                locations={locations}
+                onSelectLocation={(id) => onSelectLocation?.(id)}
+                selectedLocationId={selectedLocationId}
+            />
+            <View className="absolute inset-x-4 bottom-6">
+                {selectedLocation ? (
+                    <SelectedLocationCard
+                        location={selectedLocation}
+                        onViewDetails={openDetails}
+                    />
+                ) : (
+                    <View className="rounded-[24px] border border-stone-200 bg-stone-200 px-5 py-5 shadow-lg shadow-stone-900/90">
+                        <Text className="text-xs font-semibold uppercase tracking-[1.5px] text-stone-500">
+                            Choose a place
+                        </Text>
+                        <Text className="mt-2 text-base leading-6 text-stone-700">
+                            Tap a pin to see the details here.
+                        </Text>
+                    </View>
+                )}
+            </View>
+        </View>
+    );
+}
+
 export function LocationsScreenContent({
     data,
     error,
@@ -32,17 +80,6 @@ export function LocationsScreenContent({
     selectedLocationId = null,
 }: LocationsScreenContentProps) {
     const selectedLocation = getSelectedLocation(data, selectedLocationId);
-
-    function handleSelectLocation(locationId: string) {
-        onSelectLocation?.(locationId);
-    }
-
-    function openDetails(locationId: string) {
-        router.push({
-            pathname: "/locations/[id]",
-            params: { id: locationId },
-        });
-    }
 
     if (isLoading) {
         return (
@@ -78,31 +115,12 @@ export function LocationsScreenContent({
                     {GOIANIA.subtitle}
                 </Text>
             </View>
-            <View className="flex-1 overflow-hidden bg-stone-200">
-                <MapRenderer
-                    locations={data}
-                    onSelectLocation={handleSelectLocation}
-                    selectedLocationId={selectedLocationId}
-                />
-
-                <View className="absolute inset-x-4 bottom-6">
-                    {selectedLocation ? (
-                        <SelectedLocationCard
-                            location={selectedLocation}
-                            onViewDetails={openDetails}
-                        />
-                    ) : (
-                        <View className="rounded-[24px] border border-stone-200 bg-stone-200 px-5 py-5 shadow-lg shadow-stone-900/90">
-                            <Text className="text-xs font-semibold uppercase tracking-[1.5px] text-stone-500">
-                                Choose a place
-                            </Text>
-                            <Text className="mt-2 text-base leading-6 text-stone-700">
-                                Tap a pin to see the details here.
-                            </Text>
-                        </View>
-                    )}
-                </View>
-            </View>
+            <MapAndCard
+                locations={data}
+                onSelectLocation={onSelectLocation}
+                selectedLocation={selectedLocation}
+                selectedLocationId={selectedLocationId}
+            />
         </SafeAreaView>
     );
 }

@@ -165,20 +165,34 @@ test("Etapa 6 builds a Goiânia Overpass query with the required categories", as
     }
 });
 
+function getHeaderValue(headers, key) {
+    if (!headers || typeof headers !== "object") {
+        return "";
+    }
+    return String(headers[key] ?? "");
+}
+
+function captureRequestDetails(init) {
+    const method = init && typeof init === "object" && init.method ? init.method : "";
+    const headers = init && typeof init === "object" ? init.headers : undefined;
+    const body = init && typeof init === "object" && init.body ? String(init.body) : "";
+
+    return {
+        method,
+        contentType: getHeaderValue(headers, "content-type"),
+        host: getHeaderValue(headers, "host"),
+        body,
+    };
+}
+
 test("Etapa 6 sends the Overpass query in the data form field", async () => {
     const originalFetch = globalThis.fetch;
     let requestedUrl = "";
-    let requestMethod = "";
-    let requestContentType = "";
-    let requestHost = "";
-    let requestBody = "";
+    let requestDetails = { method: "", contentType: "", host: "", body: "" };
 
     globalThis.fetch = async (input, init) => {
         requestedUrl = String(input);
-        requestMethod = init?.method ?? "";
-        requestContentType = String(init?.headers?.["content-type"] ?? "");
-        requestHost = String(init?.headers?.host ?? "");
-        requestBody = String(init?.body ?? "");
+        requestDetails = captureRequestDetails(init);
 
         return new Response(JSON.stringify({ elements: [] }), {
             status: 200,
@@ -198,15 +212,17 @@ test("Etapa 6 sends the Overpass query in the data form field", async () => {
             requestedUrl,
             "http://65.109.112.52/api/interpreter",
         );
-        assert.equal(requestMethod, "POST");
+        assert.equal(requestDetails.method, "POST");
         assert.equal(
-            requestContentType,
+            requestDetails.contentType,
             "application/x-www-form-urlencoded; charset=utf-8",
         );
-        assert.equal(requestHost, "overpass-api.de");
-        assert.match(requestBody, /^data=/);
+        assert.equal(requestDetails.host, "overpass-api.de");
+        assert.match(requestDetails.body, /^data=/);
         assert.equal(
-            requestBody.includes(encodeURIComponent("[out:json][timeout:8];")),
+            requestDetails.body.includes(
+                encodeURIComponent("[out:json][timeout:8];"),
+            ),
             true,
         );
     } finally {

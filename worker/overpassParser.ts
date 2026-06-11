@@ -144,6 +144,34 @@ export function formatAddress(
     return street ?? houseNumber;
 }
 
+function addOptionalFields(
+    location: Location,
+    tags: OverpassTags | undefined,
+): Location {
+    const address = formatAddress(tags);
+    const openingHours = getOptionalTagValue(tags?.opening_hours);
+    const phone = getOptionalTagValue(tags?.phone);
+    const websiteUrl = getOptionalTagValue(tags?.website);
+
+    if (address) {
+        location.address = address;
+    }
+
+    if (openingHours) {
+        location.openingHours = openingHours;
+    }
+
+    if (phone) {
+        location.phone = phone;
+    }
+
+    if (websiteUrl) {
+        location.websiteUrl = websiteUrl;
+    }
+
+    return location;
+}
+
 export function normalizeOverpassElementToLocation(
     element: OverpassElement,
     citySlug: CitySlug,
@@ -175,26 +203,5 @@ export function normalizeOverpassElementToLocation(
         source: "openstreetmap",
     };
 
-    const address = formatAddress(element.tags);
-    const openingHours = getOptionalTagValue(element.tags?.opening_hours);
-    const phone = getOptionalTagValue(element.tags?.phone);
-    const websiteUrl = getOptionalTagValue(element.tags?.website);
-
-    if (address) {
-        location.address = address;
-    }
-
-    if (openingHours) {
-        location.openingHours = openingHours;
-    }
-
-    if (phone) {
-        location.phone = phone;
-    }
-
-    if (websiteUrl) {
-        location.websiteUrl = websiteUrl;
-    }
-
-    return location;
+    return addOptionalFields(location, element.tags);
 }

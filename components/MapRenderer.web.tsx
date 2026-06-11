@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import { View } from "react-native";
 
 import type { MapRendererProps } from "./MapRenderer";
+import type { Location } from "../types/location";
 
 const goianiaCenter: [number, number] = [-16.6864, -49.2643];
 const mapZoom = 13;
@@ -54,27 +55,19 @@ function createMarkerIcon(
     });
 }
 
-export function MapRenderer({
-    locations,
+type MapBodyProps = {
+    leafletModules: LeafletModules;
+    validLocations: Location[];
+    onSelectLocation: (locationId: string) => void;
+    selectedLocationId: string | null;
+};
+
+function MapBody({
+    leafletModules,
+    validLocations,
     onSelectLocation,
-    selectedLocationId = null,
-}: MapRendererProps) {
-    const leafletModules = getLeafletModules();
-    const validLocations = locations.filter((location) => {
-        return (
-            isValidCoordinate(location.latitude) &&
-            isValidCoordinate(location.longitude)
-        );
-    });
-
-    if (!leafletModules) {
-        return (
-            <View className="flex-1 items-center justify-center bg-stone-100 px-6">
-                <View className="hidden" />
-            </View>
-        );
-    }
-
+    selectedLocationId,
+}: MapBodyProps) {
     const { MapContainer, Marker, TileLayer, divIcon } = leafletModules;
 
     return (
@@ -107,5 +100,36 @@ export function MapRenderer({
                 ))}
             </MapContainer>
         </View>
+    );
+}
+
+export function MapRenderer({
+    locations,
+    onSelectLocation,
+    selectedLocationId = null,
+}: MapRendererProps) {
+    const leafletModules = getLeafletModules();
+    const validLocations = locations.filter((location) => {
+        return (
+            isValidCoordinate(location.latitude) &&
+            isValidCoordinate(location.longitude)
+        );
+    });
+
+    if (!leafletModules) {
+        return (
+            <View className="flex-1 items-center justify-center bg-stone-100 px-6">
+                <View className="hidden" />
+            </View>
+        );
+    }
+
+    return (
+        <MapBody
+            leafletModules={leafletModules}
+            validLocations={validLocations}
+            onSelectLocation={onSelectLocation}
+            selectedLocationId={selectedLocationId}
+        />
     );
 }

@@ -72,66 +72,75 @@ async function parseJson(response: Response): Promise<unknown> {
     }
 }
 
+function hasValidLocationBase(value: JsonRecord): boolean {
+    const { id, name, category, latitude, longitude, source } = value;
+
+    return (
+        typeof id === "string" &&
+        typeof name === "string" &&
+        typeof category === "string" &&
+        isValidLocationCategory(category) &&
+        typeof latitude === "number" &&
+        typeof longitude === "number" &&
+        (source === "openstreetmap" || source === "fallback")
+    );
+}
+
+function isValidOptionalString(value: unknown): boolean {
+    return value === undefined || typeof value === "string";
+}
+
+function hasValidOptionalFields(value: JsonRecord): boolean {
+    return (
+        isValidOptionalString(value.address) &&
+        isValidOptionalString(value.openingHours) &&
+        isValidOptionalString(value.phone) &&
+        isValidOptionalString(value.websiteUrl)
+    );
+}
+
+function assignOptionalFields(
+    location: Location,
+    value: JsonRecord,
+): Location {
+    if (typeof value.address === "string") {
+        location.address = value.address;
+    }
+
+    if (typeof value.openingHours === "string") {
+        location.openingHours = value.openingHours;
+    }
+
+    if (typeof value.phone === "string") {
+        location.phone = value.phone;
+    }
+
+    if (typeof value.websiteUrl === "string") {
+        location.websiteUrl = value.websiteUrl;
+    }
+
+    return location;
+}
+
 function parseLocation(value: unknown): Location {
     if (!isRecord(value)) {
         throw new Error("Invalid API response");
     }
 
-    const {
-        id,
-        name,
-        category,
-        latitude,
-        longitude,
-        address,
-        openingHours,
-        phone,
-        websiteUrl,
-        source,
-    } = value;
-
-    if (
-        typeof id !== "string" ||
-        typeof name !== "string" ||
-        typeof category !== "string" ||
-        !isValidLocationCategory(category) ||
-        typeof latitude !== "number" ||
-        typeof longitude !== "number" ||
-        (address !== undefined && typeof address !== "string") ||
-        (openingHours !== undefined && typeof openingHours !== "string") ||
-        (phone !== undefined && typeof phone !== "string") ||
-        (websiteUrl !== undefined && typeof websiteUrl !== "string") ||
-        (source !== "openstreetmap" && source !== "fallback")
-    ) {
+    if (!hasValidLocationBase(value) || !hasValidOptionalFields(value)) {
         throw new Error("Invalid API response");
     }
 
     const location: Location = {
-        id,
-        name,
-        category,
-        latitude,
-        longitude,
-        source,
+        id: value.id as string,
+        name: value.name as string,
+        category: value.category as Location["category"],
+        latitude: value.latitude as number,
+        longitude: value.longitude as number,
+        source: value.source as Location["source"],
     };
 
-    if (typeof address === "string") {
-        location.address = address;
-    }
-
-    if (typeof openingHours === "string") {
-        location.openingHours = openingHours;
-    }
-
-    if (typeof phone === "string") {
-        location.phone = phone;
-    }
-
-    if (typeof websiteUrl === "string") {
-        location.websiteUrl = websiteUrl;
-    }
-
-    return location;
+    return assignOptionalFields(location, value);
 }
 
 async function requestJson(pathname: string): Promise<unknown> {
