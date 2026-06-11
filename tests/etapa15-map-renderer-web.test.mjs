@@ -94,6 +94,7 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
                 "}",
                 "",
                 "module.exports = {",
+                "  ActivityIndicator: createHostComponent('ActivityIndicator'),",
                 "  Platform: { OS: 'web', select(options) { return options.web ?? options.default; } },",
                 "  Pressable: createHostComponent('Pressable'),",
                 "  ScrollView: createHostComponent('ScrollView'),",
@@ -318,9 +319,6 @@ test("Etapa 15 web map integra markers e selecao na home", async () => {
         assert.deepEqual(getRenderedText(renderer), [
             "DraftMaps",
             "Places to chill",
-            "Goiânia",
-            "2 spots mapped. Selected: Bosque dos Buritis.",
-            "Show list",
             "Selected place",
             "Bosque dos Buritis",
             "Park",

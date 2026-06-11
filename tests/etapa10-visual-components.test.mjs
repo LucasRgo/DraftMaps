@@ -73,6 +73,7 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
                 "}",
                 "",
                 "module.exports = {",
+                "  ActivityIndicator: createHostComponent('ActivityIndicator'),",
                 "  Pressable: createHostComponent('Pressable'),",
                 "  Text: createHostComponent('Text'),",
                 "  View: createHostComponent('View'),",

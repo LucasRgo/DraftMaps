@@ -18,7 +18,7 @@ export function SelectedLocationCard({
     }
 
     return (
-        <View className="rounded-[20px] border border-emerald-200 bg-emerald-50/80 px-5 py-5 shadow-sm shadow-emerald-200/40">
+        <View className="rounded-[20px] border border-emerald-200 bg-emerald-50 px-5 py-5 shadow-sm shadow-emerald-200/40">
             <View className="gap-1.5">
                 <Text className="text-xs font-semibold uppercase tracking-[1.5px] text-emerald-800">
                     Selected place

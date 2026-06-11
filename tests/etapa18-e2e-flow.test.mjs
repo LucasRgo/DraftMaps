@@ -89,6 +89,7 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
                 "}",
                 "",
                 "module.exports = {",
+                "  ActivityIndicator: createHostComponent('ActivityIndicator'),",
                 "  Platform: { OS: 'web', select(options) { return options.web ?? options.default; } },",
                 "  Pressable: createHostComponent('Pressable'),",
                 "  ScrollView: createHostComponent('ScrollView'),",
@@ -343,31 +344,18 @@ test("Etapa 18 E2E web flow: home -> select -> detail -> back", async () => {
         let text = getRenderedText(renderer);
 
         assert.ok(text.some((t) => t.includes("DraftMaps")));
-        assert.ok(text.some((t) => t.includes("Show list")));
         assert.ok(text.some((t) => t.includes("Choose a place")));
 
-        // 2. Open list
-        const listToggleButton = renderer.root.findByProps({
-            accessibilityRole: "button",
-            accessibilityLabel: "Show locations list",
-        });
+        // 2. Select location from map
+        const markers = renderer.root.findAllByType("Marker");
 
         TestRenderer.act(() => {
-            listToggleButton.props.onPress();
-        });
-
-        // 3. Select location from list
-        const selectParkButton = renderer.root.findByProps({
-            accessibilityRole: "button",
-            accessibilityLabel: "Select Bosque dos Buritis",
-        });
-
-        TestRenderer.act(() => {
-            selectParkButton.props.onPress();
+            markers[0].props.eventHandlers.click();
         });
 
         text = getRenderedText(renderer);
-        assert.ok(text.some((t) => t.includes("Selected: Bosque dos Buritis.")));
+        assert.ok(text.some((t) => t.includes("Selected place")));
+        assert.ok(text.some((t) => t.includes("Bosque dos Buritis")));
         assert.ok(text.some((t) => t.includes("View details")));
 
         // 4. Open details
@@ -392,7 +380,7 @@ test("Etapa 18 E2E web flow: home -> select -> detail -> back", async () => {
         // 5. Back to home
         const backButton = renderer.root.findByProps({
             accessibilityRole: "button",
-            accessibilityLabel: "Back",
+            accessibilityLabel: "Go back",
         });
 
         TestRenderer.act(() => {
@@ -405,7 +393,7 @@ test("Etapa 18 E2E web flow: home -> select -> detail -> back", async () => {
 
         text = getRenderedText(renderer);
         assert.ok(text.some((t) => t.includes("DraftMaps")));
-        assert.ok(text.some((t) => t.includes("Show list")));
+        assert.ok(text.some((t) => t.includes("Choose a place")));
     } finally {
         cleanupHome();
         cleanupDetail();

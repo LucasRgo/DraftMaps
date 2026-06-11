@@ -28,13 +28,13 @@ export function MapRenderer({
     });
 
     return (
-        <View className="overflow-hidden rounded-[24px] border border-stone-200 bg-stone-100">
+        <View className="flex-1 overflow-hidden bg-stone-100">
             <MapView
                 initialRegion={initialRegion}
                 loadingEnabled
                 showsCompass={false}
                 toolbarEnabled={false}
-                style={{ width: "100%", height: 320 }}
+                style={{ width: "100%", height: "100%" }}
             >
                 {validLocations.map((location) => (
                     <Marker

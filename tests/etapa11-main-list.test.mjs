@@ -110,6 +110,7 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
                 "}",
                 "",
                 "module.exports = {",
+                "  ActivityIndicator: createHostComponent('ActivityIndicator'),",
                 "  Platform: { OS: 'web', select(options) { return options.web ?? options.default; } },",
                 "  Pressable: createHostComponent('Pressable'),",
                 "  ScrollView: createHostComponent('ScrollView'),",

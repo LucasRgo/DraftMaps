@@ -12,7 +12,7 @@ export type MapRendererProps = {
 
 function MapPlaceholder() {
     return (
-        <View className="h-[320px] items-center justify-center rounded-[28px] border border-stone-200 bg-stone-100 px-6">
+        <View className="flex-1 items-center justify-center bg-stone-100 px-6">
             <Text className="text-base font-medium text-stone-700">
                 Loading map...
             </Text>

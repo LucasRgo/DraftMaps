@@ -1,7 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { ScrollView, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 
-import { AppButton } from "../../components/AppButton";
 import { EmptyState } from "../../components/EmptyState";
 import { ErrorState } from "../../components/ErrorState";
 import { LoadingState } from "../../components/LoadingState";
@@ -49,13 +48,28 @@ export function LocationScreenContent({
         return <LocationDetails location={data} />;
     }
 
-    return (
-        <Screen title="Location">
-            <View className="flex-1 gap-3">
-                <View className="self-start">
-                    <AppButton onPress={onBack} title="Back" />
-                </View>
+    const header = (
+        <View className="flex-row items-center justify-between gap-4">
+            <Pressable
+                accessibilityLabel="Go back"
+                accessibilityRole="button"
+                className="rounded-full bg-stone-900 px-5 py-3 active:bg-stone-800"
+                onPress={onBack}
+            >
+                <Text className="text-center text-sm font-semibold text-stone-50">
+                    Back
+                </Text>
+            </Pressable>
 
+            <Text className="text-[34px] font-bold tracking-[-1px] text-stone-900">
+                Location
+            </Text>
+        </View>
+    );
+
+    return (
+        <Screen header={header}>
+            <View className="flex-1">
                 <ScrollView
                     className="flex-1"
                     contentContainerClassName="pb-6"

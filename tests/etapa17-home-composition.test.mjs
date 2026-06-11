@@ -89,6 +89,7 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
                 "}",
                 "",
                 "module.exports = {",
+                "  ActivityIndicator: createHostComponent('ActivityIndicator'),",
                 "  Platform: { OS: 'web', select(options) { return options.web ?? options.default; } },",
                 "  Pressable: createHostComponent('Pressable'),",
                 "  ScrollView: createHostComponent('ScrollView'),",
@@ -317,11 +318,8 @@ test("Etapa 17 keeps map, panel, and selected card synchronized", async () => {
         assert.deepEqual(getRenderedText(renderer), [
             "DraftMaps",
             "Places to chill",
-            "Goiânia",
-            "2 spots mapped. Browse the calmest picks.",
-            "Show list",
             "Choose a place",
-            "Tap a pin or open the list to pick somewhere calm.",
+            "Tap a pin to see the details here.",
         ]);
 
         let markers = renderer.root.findAllByType("Marker");
@@ -333,31 +331,14 @@ test("Etapa 17 keeps map, panel, and selected card synchronized", async () => {
         assert.deepEqual(getRenderedText(renderer), [
             "DraftMaps",
             "Places to chill",
-            "Goiânia",
-            "2 spots mapped. Selected: Biblioteca Central.",
-            "Show list",
             "Selected place",
             "Biblioteca Central",
             "Library",
             "View details",
         ]);
 
-        const listToggleButton = renderer.root.findByProps({
-            accessibilityRole: "button",
-            accessibilityLabel: "Show locations list",
-        });
-
         TestRenderer.act(() => {
-            listToggleButton.props.onPress();
-        });
-
-        const selectBosqueButton = renderer.root.findByProps({
-            accessibilityRole: "button",
-            accessibilityLabel: "Select Bosque dos Buritis",
-        });
-
-        TestRenderer.act(() => {
-            selectBosqueButton.props.onPress();
+            markers[0].props.eventHandlers.click();
         });
 
         markers = renderer.root.findAllByType("Marker");
@@ -373,19 +354,10 @@ test("Etapa 17 keeps map, panel, and selected card synchronized", async () => {
         assert.deepEqual(getRenderedText(renderer), [
             "DraftMaps",
             "Places to chill",
-            "Goiânia",
-            "2 spots mapped. Selected: Bosque dos Buritis.",
-            "Hide list",
             "Selected place",
             "Bosque dos Buritis",
             "Park",
             "View details",
-            "Bosque dos Buritis",
-            "Park",
-            "Selected",
-            "Biblioteca Central",
-            "Library",
-            "Tap to select",
         ]);
     } finally {
         cleanup();

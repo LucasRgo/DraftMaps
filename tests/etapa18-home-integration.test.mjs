@@ -90,6 +90,7 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
                 "",
                 "module.exports = {",
                 "  Platform: { OS: 'web', select(options) { return options.web ?? options.default; } },",
+                "  ActivityIndicator: createHostComponent('ActivityIndicator'),",
                 "  Pressable: createHostComponent('Pressable'),",
                 "  ScrollView: createHostComponent('ScrollView'),",
                 "  Text: createHostComponent('Text'),",
@@ -480,40 +481,19 @@ test("Etapa 18 home integration renders success with locations and selects from 
             );
         });
 
-        const listToggleButton = renderer.root.findByProps({
-            accessibilityRole: "button",
-            accessibilityLabel: "Show locations list",
-        });
+        const markers = renderer.root.findAllByType("Marker");
 
         TestRenderer.act(() => {
-            listToggleButton.props.onPress();
-        });
-
-        const selectCafeButton = renderer.root.findByProps({
-            accessibilityRole: "button",
-            accessibilityLabel: "Select Café com Leitura",
-        });
-
-        TestRenderer.act(() => {
-            selectCafeButton.props.onPress();
+            markers[1].props.eventHandlers.click();
         });
 
         assert.deepEqual(getRenderedText(renderer), [
             "DraftMaps",
             "Places to chill",
-            "Goiânia",
-            "2 spots mapped. Selected: Café com Leitura.",
-            "Hide list",
             "Selected place",
             "Café com Leitura",
             "Cafe",
             "View details",
-            "Bosque dos Buritis",
-            "Park",
-            "Tap to select",
-            "Café com Leitura",
-            "Cafe",
-            "Selected",
         ]);
     } finally {
         cleanup();

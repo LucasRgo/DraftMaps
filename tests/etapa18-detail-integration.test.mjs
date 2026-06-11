@@ -89,6 +89,7 @@ function compileTypeScriptFiles(tempPrefix, entryFiles) {
                 "}",
                 "",
                 "module.exports = {",
+                "  ActivityIndicator: createHostComponent('ActivityIndicator'),",
                 "  Platform: { OS: 'web', select(options) { return options.web ?? options.default; } },",
                 "  Pressable: createHostComponent('Pressable'),",
                 "  ScrollView: createHostComponent('ScrollView'),",
@@ -237,8 +238,8 @@ test("Etapa 18 detail integration renders loading state", async () => {
         });
 
         assert.deepEqual(getRenderedText(renderer), [
-            "Location",
             "Back",
+            "Location",
             "Loading place details...",
         ]);
     } finally {
@@ -402,8 +403,8 @@ test("Etapa 18 detail integration renders 404 for missing location", async () =>
         });
 
         assert.deepEqual(getRenderedText(renderer), [
-            "Location",
             "Back",
+            "Location",
             "Location not found",
             "We could not find details for this place.",
         ]);
@@ -465,8 +466,8 @@ test("Etapa 18 detail integration renders error state with retry", async () => {
 
         assert.equal(retries, 1);
         assert.deepEqual(getRenderedText(renderer), [
-            "Location",
             "Back",
+            "Location",
             "Something went wrong",
             "Location service failed",
             "Try again",
@@ -520,7 +521,7 @@ test("Etapa 18 detail integration calls onBack when back button is pressed", asy
 
         const backButton = renderer.root.findByProps({
             accessibilityRole: "button",
-            accessibilityLabel: "Back",
+            accessibilityLabel: "Go back",
         });
 
         TestRenderer.act(() => {
