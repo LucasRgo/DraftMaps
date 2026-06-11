@@ -2,7 +2,7 @@ import MapView, { Marker } from "react-native-maps";
 import { View } from "react-native";
 
 import type { MapRendererProps } from "./MapRenderer";
-import { formatLocationCategoryLabel } from "../utils/locationDetails";
+import type { Location as AppLocation } from "../types/location";
 
 const initialRegion = {
     latitude: -16.6864,
@@ -20,7 +20,7 @@ export function MapRenderer({
     onSelectLocation,
     selectedLocationId = null,
 }: MapRendererProps) {
-    const validLocations = locations.filter((location) => {
+    const validLocations = locations.filter((location: AppLocation) => {
         return (
             isValidCoordinate(location.latitude) &&
             isValidCoordinate(location.longitude)
@@ -36,16 +36,17 @@ export function MapRenderer({
                 toolbarEnabled={false}
                 style={{ width: "100%", height: "100%" }}
             >
-                {validLocations.map((location) => (
+                {validLocations.map((location: AppLocation) => (
                     <Marker
                         key={location.id}
                         coordinate={{
                             latitude: location.latitude,
                             longitude: location.longitude,
                         }}
-                        description={formatLocationCategoryLabel(
-                            location.category,
-                        )}
+                        description={
+                            location.category[0].toUpperCase() +
+                            location.category.slice(1)
+                        }
                         onPress={() => {
                             onSelectLocation(location.id);
                         }}

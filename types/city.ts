@@ -20,21 +20,6 @@ export type City = {
     bbox: CityBoundingBox;
 };
 
-export function isValidCoordinate(
-    value: number,
-    axis: "latitude" | "longitude",
-): boolean {
-    if (!Number.isFinite(value)) {
-        return false;
-    }
-
-    if (axis === "latitude") {
-        return value >= -90 && value <= 90;
-    }
-
-    return value >= -180 && value <= 180;
-}
-
 export const GOIANIA: City = {
     slug: "goiania",
     name: "Goiânia",

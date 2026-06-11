@@ -3,7 +3,7 @@ import type { ComponentType } from "react";
 import { View } from "react-native";
 
 import type { MapRendererProps } from "./MapRenderer";
-import type { Location } from "../types/location";
+import type { Location as AppLocation } from "../types/location";
 
 const goianiaCenter: [number, number] = [-16.6864, -49.2643];
 const mapZoom = 13;
@@ -57,7 +57,7 @@ function createMarkerIcon(
 
 type MapBodyProps = {
     leafletModules: LeafletModules;
-    validLocations: Location[];
+    validLocations: AppLocation[];
     onSelectLocation: (locationId: string) => void;
     selectedLocationId: string | null;
 };
@@ -109,7 +109,7 @@ export function MapRenderer({
     selectedLocationId = null,
 }: MapRendererProps) {
     const leafletModules = getLeafletModules();
-    const validLocations = locations.filter((location) => {
+    const validLocations = locations.filter((location: AppLocation) => {
         return (
             isValidCoordinate(location.latitude) &&
             isValidCoordinate(location.longitude)

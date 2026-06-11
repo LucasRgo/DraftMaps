@@ -1,16 +1,16 @@
 import { Text, View } from "react-native";
 
-type EmptyStateProps = {
-    message?: string;
+type Props = {
     title?: string;
+    message?: string;
 };
 
-export function EmptyState({
-    message = "We could not find places to show right now.",
+export function Empty({
     title = "No places found",
-}: EmptyStateProps) {
+    message = "We could not find places to show right now.",
+}: Props) {
     return (
-        <View className="flex-1 items-center justify-center rounded-[24px] bg-white px-6 py-10 shadow-sm shadow-stone-300/20">
+        <View className="flex-1 items-center justify-center rounded-[24px] bg-white px-6 py-10 shadow-sm">
             <Text className="text-center text-lg font-semibold text-stone-900">
                 {title}
             </Text>

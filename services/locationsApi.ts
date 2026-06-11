@@ -1,199 +1,35 @@
-import { isValidLocationCategory, type Location } from "../types/location";
+import type { Location } from "../types/location";
 
-const DEFAULT_LOCATIONS_API_BASE_URL = "http://127.0.0.1:8787";
+const API_URL = process.env.EXPO_PUBLIC_LOCATIONS_API_BASE_URL?.trim() || "http://127.0.0.1:8787";
 
-type JsonRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is JsonRecord {
-    return typeof value === "object" && value !== null;
-}
-
-function getConfiguredBaseUrl(): string | undefined {
-    const value = process.env.EXPO_PUBLIC_LOCATIONS_API_BASE_URL;
-
-    if (typeof value !== "string") {
-        return undefined;
-    }
-
-    const trimmedValue = value.trim();
-
-    return trimmedValue.length > 0 ? trimmedValue : undefined;
-}
-
-function removeTrailingSlash(url: string): string {
-    return url.replace(/\/+$/, "");
-}
-
-function getBrowserOrigin(): string | undefined {
-    const { location } = globalThis;
-
-    if (
-        !location ||
-        typeof location.origin !== "string" ||
-        location.origin.trim().length === 0
-    ) {
-        return undefined;
-    }
-
-    return removeTrailingSlash(location.origin);
-}
-
-export function resolveLocationsApiBaseUrl(): string {
-    const configuredBaseUrl = getConfiguredBaseUrl();
-
-    if (configuredBaseUrl) {
-        return removeTrailingSlash(configuredBaseUrl);
-    }
-
-    const browserOrigin = getBrowserOrigin();
-
-    if (browserOrigin) {
-        return browserOrigin;
-    }
-
-    return DEFAULT_LOCATIONS_API_BASE_URL;
-}
-
-function getErrorMessage(payload: unknown): string | null {
-    if (!isRecord(payload) || typeof payload.error !== "string") {
-        return null;
-    }
-
-    const message = payload.error.trim();
-
-    return message.length > 0 ? message : null;
-}
-
-async function parseJson(response: Response): Promise<unknown> {
-    try {
-        return await response.json();
-    } catch {
-        throw new Error("Invalid API response");
-    }
-}
-
-function hasValidLocationBase(value: JsonRecord): boolean {
-    const { id, name, category, latitude, longitude, source } = value;
-
-    return (
-        typeof id === "string" &&
-        typeof name === "string" &&
-        typeof category === "string" &&
-        isValidLocationCategory(category) &&
-        typeof latitude === "number" &&
-        typeof longitude === "number" &&
-        (source === "openstreetmap" || source === "fallback")
-    );
-}
-
-function isValidOptionalString(value: unknown): boolean {
-    return value === undefined || typeof value === "string";
-}
-
-function hasValidOptionalFields(value: JsonRecord): boolean {
-    return (
-        isValidOptionalString(value.address) &&
-        isValidOptionalString(value.openingHours) &&
-        isValidOptionalString(value.phone) &&
-        isValidOptionalString(value.websiteUrl)
-    );
-}
-
-function assignOptionalFields(
-    location: Location,
-    value: JsonRecord,
-): Location {
-    if (typeof value.address === "string") {
-        location.address = value.address;
-    }
-
-    if (typeof value.openingHours === "string") {
-        location.openingHours = value.openingHours;
-    }
-
-    if (typeof value.phone === "string") {
-        location.phone = value.phone;
-    }
-
-    if (typeof value.websiteUrl === "string") {
-        location.websiteUrl = value.websiteUrl;
-    }
-
-    return location;
-}
-
-function parseLocation(value: unknown): Location {
-    if (!isRecord(value)) {
-        throw new Error("Invalid API response");
-    }
-
-    if (!hasValidLocationBase(value) || !hasValidOptionalFields(value)) {
-        throw new Error("Invalid API response");
-    }
-
-    const location: Location = {
-        id: value.id as string,
-        name: value.name as string,
-        category: value.category as Location["category"],
-        latitude: value.latitude as number,
-        longitude: value.longitude as number,
-        source: value.source as Location["source"],
-    };
-
-    return assignOptionalFields(location, value);
-}
-
-async function requestJson(pathname: string): Promise<unknown> {
-    let response: Response;
-
-    try {
-        response = await fetch(`${resolveLocationsApiBaseUrl()}${pathname}`);
-    } catch {
-        throw new Error("Unable to reach locations API");
-    }
-
-    const payload = await parseJson(response);
-
-    if (!response.ok) {
-        if (response.status === 404 && pathname.startsWith("/api/locations/")) {
-            throw new Error("Location not found");
-        }
-
-        throw new Error(
-            getErrorMessage(payload) ??
-                `Locations API request failed with status ${response.status}`,
-        );
-    }
-
-    return payload;
+function getApiUrl(path: string): string {
+    const base = API_URL.replace(/\/$/, "");
+    return `${base}${path}`;
 }
 
 export async function fetchLocations(): Promise<Location[]> {
-    const payload = await requestJson("/api/locations");
-
-    if (!isRecord(payload) || !Array.isArray(payload.locations)) {
-        throw new Error("Invalid API response");
+    const response = await fetch(getApiUrl("/api/locations"));
+    if (!response.ok) {
+        throw new Error("Failed to load locations");
     }
-
-    return payload.locations.map(parseLocation);
+    const data = (await response.json()) as { locations?: unknown[] };
+    if (!Array.isArray(data.locations)) {
+        throw new Error("Invalid response");
+    }
+    return data.locations as Location[];
 }
 
 export async function fetchLocationById(id: string): Promise<Location> {
     const trimmedId = id.trim();
-
     if (trimmedId.length === 0) {
         throw new Error("Location id is required");
     }
-
-    const payload = await requestJson(
-        `/api/locations/${encodeURIComponent(trimmedId)}`,
-    );
-
-    return parseLocation(payload);
-}
-
-export async function probeLocationsApi(): Promise<string> {
-    const locations = await fetchLocations();
-
-    return `API OK: ${locations.length} location(s) loaded`;
+    const response = await fetch(getApiUrl(`/api/locations/${encodeURIComponent(trimmedId)}`));
+    if (!response.ok) {
+        if (response.status === 404) {
+            throw new Error("Location not found");
+        }
+        throw new Error("Failed to load location");
+    }
+    return response.json() as Promise<Location>;
 }

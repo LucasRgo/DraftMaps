@@ -1,8 +1,6 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
 import type { Location } from "../types/location";
-import { formatLocationCategoryLabel } from "../utils/locationDetails";
-import { AppButton } from "./AppButton";
 
 type SelectedLocationCardProps = {
     location: Location | null;
@@ -17,6 +15,9 @@ export function SelectedLocationCard({
         return null;
     }
 
+    const categoryLabel =
+        location.category[0].toUpperCase() + location.category.slice(1);
+
     return (
         <View className="rounded-[20px] border border-emerald-200 bg-emerald-50 px-5 py-5 shadow-sm shadow-emerald-200/40">
             <View className="gap-1.5">
@@ -27,18 +28,21 @@ export function SelectedLocationCard({
                     {location.name}
                 </Text>
                 <Text className="text-sm font-medium text-emerald-900">
-                    {formatLocationCategoryLabel(location.category)}
+                    {categoryLabel}
                 </Text>
             </View>
 
             <View className="mt-5 self-start">
-                <AppButton
+                <Pressable
                     accessibilityLabel={`View details for ${location.name}`}
-                    onPress={() => {
-                        onViewDetails(location.id);
-                    }}
-                    title="View details"
-                />
+                    accessibilityRole="button"
+                    className="rounded-full bg-stone-900 px-5 py-3 active:bg-stone-800"
+                    onPress={() => onViewDetails(location.id)}
+                >
+                    <Text className="text-center text-sm font-semibold text-stone-50">
+                        View details
+                    </Text>
+                </Pressable>
             </View>
         </View>
     );
