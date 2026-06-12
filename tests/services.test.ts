@@ -43,17 +43,18 @@ test("fetchLocations returns locations array", async () => {
     }
 });
 
-test("fetchLocations throws on non-ok response", async () => {
+test("fetchLocations returns fallback on non-ok response", async () => {
     mockFetch(new Response("Server error", { status: 500 }));
 
     try {
-        await assert.rejects(fetchLocations(), /Failed to load locations/);
+        const locations = await fetchLocations();
+        assert.deepEqual(locations, fallbackLocations);
     } finally {
         restoreFetch();
     }
 });
 
-test("fetchLocations throws on invalid response without locations array", async () => {
+test("fetchLocations returns fallback on invalid response without locations array", async () => {
     mockFetch(
         new Response(JSON.stringify({ error: "bad" }), {
             status: 200,
@@ -62,13 +63,14 @@ test("fetchLocations throws on invalid response without locations array", async 
     );
 
     try {
-        await assert.rejects(fetchLocations(), /Invalid response/);
+        const locations = await fetchLocations();
+        assert.deepEqual(locations, fallbackLocations);
     } finally {
         restoreFetch();
     }
 });
 
-test("fetchLocations throws on null response", async () => {
+test("fetchLocations returns fallback on null response", async () => {
     mockFetch(
         new Response(JSON.stringify(null), {
             status: 200,
@@ -77,7 +79,8 @@ test("fetchLocations throws on null response", async () => {
     );
 
     try {
-        await assert.rejects(fetchLocations(), /Cannot read properties of null/);
+        const locations = await fetchLocations();
+        assert.deepEqual(locations, fallbackLocations);
     } finally {
         restoreFetch();
     }
@@ -130,11 +133,38 @@ test("fetchLocationById throws on 404", async () => {
     }
 });
 
-test("fetchLocationById throws on other errors", async () => {
+test("fetchLocationById throws on 500 when id does not exist in fallback", async () => {
     mockFetch(new Response("Server error", { status: 500 }));
 
     try {
         await assert.rejects(fetchLocationById("some-id"), /Failed to load location/);
+    } finally {
+        restoreFetch();
+    }
+});
+
+test("fetchLocationById returns fallback on network error when id exists", async () => {
+    const fallback = fallbackLocations[0];
+    global.fetch = async () => {
+        throw new Error("Network error");
+    };
+
+    try {
+        const location = await fetchLocationById(fallback.id);
+        assert.equal(location.id, fallback.id);
+        assert.equal(location.name, fallback.name);
+    } finally {
+        restoreFetch();
+    }
+});
+
+test("fetchLocationById throws on network error when id does not exist", async () => {
+    global.fetch = async () => {
+        throw new Error("Network error");
+    };
+
+    try {
+        await assert.rejects(fetchLocationById("unknown-id"), /Failed to load location/);
     } finally {
         restoreFetch();
     }
