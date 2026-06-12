@@ -11,11 +11,11 @@ function jsonResponse(body: unknown, status = 200): Response {
     return new Response(JSON.stringify(body), { headers: jsonHeaders, status });
 }
 
-function isValidCoordinate(value: number): boolean {
+export function isValidCoordinate(value: number): boolean {
     return Number.isFinite(value);
 }
 
-function hasNameAndCoords(location: Location): boolean {
+export function hasNameAndCoords(location: Location): boolean {
     return (
         location.name.trim().length > 0 &&
         isValidCoordinate(location.latitude) &&
@@ -23,13 +23,13 @@ function hasNameAndCoords(location: Location): boolean {
     );
 }
 
-function buildOverpassQuery(): string {
+export function buildOverpassQuery(): string {
     const [south, west, north, east] = GOIANIA.bbox;
     const bbox = `${south},${west},${north},${east}`;
     return `[out:json][timeout:8];(node["amenity"="cafe"](${bbox});way["amenity"="cafe"](${bbox});relation["amenity"="cafe"](${bbox});node["amenity"="library"](${bbox});way["amenity"="library"](${bbox});relation["amenity"="library"](${bbox});node["tourism"="museum"](${bbox});way["tourism"="museum"](${bbox});relation["tourism"="museum"](${bbox});node["leisure"="park"](${bbox});way["leisure"="park"](${bbox});relation["leisure"="park"](${bbox});node["shop"="books"](${bbox});way["shop"="books"](${bbox});relation["shop"="books"](${bbox}););out center tags;`;
 }
 
-function getCategory(
+export function getCategory(
     tags: Record<string, string>,
 ): Location["category"] | null {
     if (tags.amenity === "cafe") return "cafe";
@@ -40,14 +40,14 @@ function getCategory(
     return null;
 }
 
-function getAddress(tags: Record<string, string>): string | undefined {
+export function getAddress(tags: Record<string, string>): string | undefined {
     const street = tags["addr:street"]?.trim();
     const house = tags["addr:housenumber"]?.trim();
     if (street && house) return `${street}, ${house}`;
     return street || house;
 }
 
-function parseElement(element: unknown): Location | null {
+export function parseElement(element: unknown): Location | null {
     if (typeof element !== "object" || element === null) return null;
     const el = element as Record<string, unknown>;
     const tags = (el.tags || {}) as Record<string, string>;
@@ -125,25 +125,45 @@ async function fetchOverpassLocations(): Promise<Location[]> {
         .slice(0, 30);
 }
 
+let cachedLocations: {
+    city: "goiania";
+    source: "openstreetmap" | "fallback";
+    locations: Location[];
+} | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 60_000; // 1 minute
+
 async function getLocations(): Promise<{
     city: "goiania";
     source: "openstreetmap" | "fallback";
     locations: Location[];
 }> {
+    if (cachedLocations && Date.now() - cacheTimestamp < CACHE_TTL_MS) {
+        return cachedLocations;
+    }
+
+    let result: typeof cachedLocations = null;
+
     try {
         const locations = await fetchOverpassLocations();
         if (locations.length >= 10) {
-            return { city: "goiania", source: "openstreetmap", locations };
+            result = { city: "goiania", source: "openstreetmap", locations };
         }
     } catch {
         // Overpass failed, use fallback
     }
 
-    return {
-        city: "goiania",
-        source: "fallback",
-        locations: fallbackLocations.filter(hasNameAndCoords),
-    };
+    if (!result) {
+        result = {
+            city: "goiania",
+            source: "fallback",
+            locations: fallbackLocations.filter(hasNameAndCoords),
+        };
+    }
+
+    cachedLocations = result;
+    cacheTimestamp = Date.now();
+    return result;
 }
 
 async function getLocationById(id: string): Promise<Location | null> {

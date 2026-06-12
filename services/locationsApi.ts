@@ -1,3 +1,4 @@
+import { fallbackLocations } from "../utils/fallbackLocations";
 import type { Location } from "../types/location";
 
 const API_URL = process.env.EXPO_PUBLIC_LOCATIONS_API_BASE_URL?.trim() || "http://127.0.0.1:8787";
@@ -26,6 +27,10 @@ export async function fetchLocationById(id: string): Promise<Location> {
     }
     const response = await fetch(getApiUrl(`/api/locations/${encodeURIComponent(trimmedId)}`));
     if (!response.ok) {
+        const fallback = fallbackLocations.find((l) => l.id === trimmedId);
+        if (fallback) {
+            return fallback;
+        }
         if (response.status === 404) {
             throw new Error("Location not found");
         }

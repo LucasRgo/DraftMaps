@@ -58,3 +58,6 @@ skills/
 *.tmp
 *.temp
 *~
+
+# Playwright / test artifacts
+test-results/
