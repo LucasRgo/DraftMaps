@@ -1,5 +1,6 @@
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
+import { openMapsDirections } from "../utils/openMaps";
 import type { Location } from "../types/location";
 
 type LocationDetailsProps = {
@@ -19,6 +20,18 @@ export function LocationDetails({ location }: LocationDetailsProps) {
                 <Text className="mt-3 text-2xl font-bold leading-8 text-stone-900">
                     {location.name}
                 </Text>
+                <View className="mt-5 self-start">
+                    <Pressable
+                        accessibilityLabel={`Open route to ${location.name}`}
+                        accessibilityRole="button"
+                        className="rounded-full bg-emerald-700 px-5 py-3 active:bg-emerald-600"
+                        onPress={() => openMapsDirections(location)}
+                    >
+                        <Text className="text-center text-sm font-semibold text-stone-50">
+                            Open route
+                        </Text>
+                    </Pressable>
+                </View>
             </View>
 
             <View className="rounded-[24px] border border-stone-200 bg-white px-5 py-5 shadow-sm shadow-stone-300/20">

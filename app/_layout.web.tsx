@@ -1,4 +1,5 @@
-import "../global.css";
+import "../nativewind.css";
+import "../leaflet.css";
 
 import { Stack } from "expo-router";
 
